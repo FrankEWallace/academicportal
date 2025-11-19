@@ -1,3 +1,26 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Build outputs
+/dist
+/build
+*.tsbuildinfo
+
+# Laravel specific
+/laravel-backend/storage/*.key
+/laravel-backend/storage/logs/*
+/laravel-backend/storage/framework/cache/data/*
+/laravel-backend/storage/framework/sessions/*
+/laravel-backend/storage/framework/views/*
+/laravel-backend/bootstrap/cache/*
+.phpunit.cache
+
 # Logs
 logs
 *.log
@@ -6,11 +29,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +40,23 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS generated files
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Temporary folders
+tmp/
+temp/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
