@@ -2,7 +2,7 @@
 
 A comprehensive academic management system built with React (Frontend) and Laravel (Backend). This portal provides complete functionality for managing students, teachers, courses, attendance, grades, and fees in an educational institution.
 
-## 🌟 Features
+##  Features
 
 ### **Multi-Role System**
 - **Admin Dashboard** - Complete institutional management
@@ -10,15 +10,15 @@ A comprehensive academic management system built with React (Frontend) and Larav
 - **Teacher Portal** - Class management, attendance marking, grade submission
 
 ### **Core Functionality**
-- 🔐 **Authentication & Authorization** - Role-based access control
-- 👥 **User Management** - Students, teachers, and administrators  
-- 📚 **Course Management** - Course catalog, enrollment, scheduling
-- 📊 **Attendance System** - Real-time attendance tracking
-- 📈 **Grade Management** - Assessment and grading system
-- 💰 **Fee Management** - Payment tracking and financial records
-- 📢 **Announcements** - Institution-wide communication
+- **Authentication & Authorization** - Role-based access control
+- **User Management** - Students, teachers, and administrators  
+- **Course Management** - Course catalog, enrollment, scheduling
+- **Attendance System** - Real-time attendance tracking
+- **Grade Management** - Assessment and grading system
+- **Fee Management** - Payment tracking and financial records
+- **Announcements** - Institution-wide communication
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### **Frontend (React)**
 - **Framework**: React 18 with TypeScript
@@ -34,7 +34,7 @@ A comprehensive academic management system built with React (Frontend) and Larav
 - **API**: RESTful API architecture
 - **ORM**: Eloquent
 
-## 🚀 Quick Start
+## Quick Start
 
 ### **Prerequisites**
 - Node.js 18+
@@ -86,7 +86,7 @@ A comprehensive academic management system built with React (Frontend) and Larav
    # Backend API will run on http://localhost:8000/api
    ```
 
-## 📱 Demo Credentials
+## Demo Credentials
 
 After running database seeders:
 
@@ -96,7 +96,7 @@ After running database seeders:
 | **Teacher** | john.smith@academic-nexus.com | teacher123 |
 | **Student** | john.doe@student.academic-nexus.com | student123 |
 
-## 📡 API Endpoints
+##  API Endpoints
 
 ### **Authentication**
 ```
@@ -132,7 +132,7 @@ POST   /api/teacher/attendance  # Mark attendance
 POST   /api/teacher/grades      # Submit grades
 ```
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ### **Core Tables**
 - `users` - Authentication and basic user information
@@ -146,7 +146,7 @@ POST   /api/teacher/grades      # Submit grades
 - `fees` - Financial records and payments
 - `announcements` - System-wide communications
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```
 academic-nexus-portal/
@@ -163,7 +163,7 @@ academic-nexus-portal/
 └── 📄 README.md                     # Project documentation
 ```
 
-## 🔧 Development
+##  Development
 
 ### **Frontend Development**
 ```bash
@@ -181,7 +181,7 @@ php artisan db:seed            # Seed sample data
 php artisan route:list         # List all routes
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### **Frontend (Vite Build)**
 ```bash
@@ -197,7 +197,7 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -205,11 +205,11 @@ php artisan view:cache
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Built with [Lovable](https://lovable.dev) for rapid React development
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
@@ -218,7 +218,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**🎓 Academic Nexus Portal - Transforming Education Management**
+** Academic Nexus Portal - Transforming Education Management**
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
 ## What technologies are used for this project?
@@ -231,14 +231,4 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/48282f7f-8a73-4409-9453-7a4178e400b7) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
