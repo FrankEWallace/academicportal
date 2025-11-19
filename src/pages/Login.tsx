@@ -5,15 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Loader2 } from "lucide-react";
 import campusBackground from "@/assets/campus-bg.jpg";
 import { toast } from "@/hooks/use-toast";
+import { useLogin } from "@/hooks/useApi";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [role, setRole] = useState<string>("");
+  const [role, setRole] = useState<"admin" | "student" | "teacher" | "">("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const loginMutation = useLogin();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,25 +30,30 @@ const Login = () => {
       return;
     }
 
-    // Mock authentication - in real app, this would call an API
-    toast({
-      title: "Login Successful",
-      description: `Welcome back, ${role}!`,
-    });
-
-    // Navigate based on role
-    switch (role) {
-      case "admin":
-        navigate("/admin");
-        break;
-      case "student":
-        navigate("/student");
-        break;
-      case "teacher":
-        navigate("/teacher");
-        break;
-      default:
-        navigate("/");
+    if (role) {
+      loginMutation.mutate(
+        { email, password, role },
+        {
+          onSuccess: (data) => {
+            if (data.success && data.data.user) {
+              // Navigate based on user role from API response
+              switch (data.data.user.role) {
+                case "admin":
+                  navigate("/admin");
+                  break;
+                case "student":
+                  navigate("/student");
+                  break;
+                case "teacher":
+                  navigate("/teacher");
+                  break;
+                default:
+                  navigate("/");
+              }
+            }
+          }
+        }
+      );
     }
   };
 
@@ -82,7 +90,7 @@ const Login = () => {
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="role">Select Role</Label>
-              <Select value={role} onValueChange={setRole}>
+              <Select value={role} onValueChange={(value) => setRole(value as "admin" | "student" | "teacher")}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Choose your role" />
                 </SelectTrigger>
@@ -125,8 +133,15 @@ const Login = () => {
               </a>
             </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              Login
+            <Button type="submit" className="w-full" size="lg" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
         </CardContent>

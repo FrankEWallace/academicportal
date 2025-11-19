@@ -36,6 +36,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
         
+        // Users CRUD Management
+        Route::get('/users', [AdminController::class, 'users']);
+        Route::get('/users/{id}', [AdminController::class, 'showUser']);
+        Route::post('/users', [AdminController::class, 'storeUser']);
+        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::patch('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
+        
+        // Courses CRUD Management
+        Route::get('/courses', [AdminController::class, 'courses']);
+        Route::get('/courses/{id}', [AdminController::class, 'showCourse']);
+        Route::post('/courses', [AdminController::class, 'storeCourse']);
+        Route::put('/courses/{id}', [AdminController::class, 'updateCourse']);
+        Route::patch('/courses/{id}', [AdminController::class, 'updateCourse']);
+        Route::delete('/courses/{id}', [AdminController::class, 'destroyCourse']);
+        
         // Students Management
         Route::get('/students', [AdminController::class, 'students']);
         Route::post('/students', [AdminController::class, 'storeStudent']);
@@ -43,10 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Teachers Management
         Route::get('/teachers', [AdminController::class, 'teachers']);
         Route::post('/teachers', [AdminController::class, 'storeTeacher']);
-        
-        // Courses Management
-        Route::get('/courses', [AdminController::class, 'courses']);
-        Route::post('/courses', [AdminController::class, 'storeCourse']);
         
         // Departments Management
         Route::get('/departments', [AdminController::class, 'departments']);
@@ -101,6 +113,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 ->get()
         ]);
     });
+    
+    // General CRUD Routes (accessible by authenticated users with proper permissions)
+    Route::get('/users', [AdminController::class, 'users']);
+    Route::get('/users/{id}', [AdminController::class, 'showUser']);
+    Route::get('/courses', [AdminController::class, 'courses']);
+    Route::get('/courses/{id}', [AdminController::class, 'showCourse']);
 });
 
 // Health Check Route

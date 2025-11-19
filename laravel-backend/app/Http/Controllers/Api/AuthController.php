@@ -49,11 +49,19 @@ class AuthController extends Controller
         // Create new token
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Load role-specific relationship if available
+        $userWithRelation = $user;
+        if ($user->role === 'student' && method_exists($user, 'student')) {
+            $userWithRelation = $user->load('student');
+        } elseif ($user->role === 'teacher' && method_exists($user, 'teacher')) {
+            $userWithRelation = $user->load('teacher');
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
             'data' => [
-                'user' => $user->load($user->role),
+                'user' => $userWithRelation,
                 'token' => $token,
                 'token_type' => 'Bearer'
             ]

@@ -11,6 +11,8 @@ use App\Models\Department;
 use App\Models\Enrollment;
 use App\Models\Attendance;
 use App\Models\Fee;
+use App\Models\Grade;
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -425,5 +427,256 @@ class AdminController extends Controller
             'message' => 'Announcement created successfully',
             'data' => $announcement->load('creator', 'department')
         ], 201);
+    }
+
+    // ==============================================
+    // USER CRUD ENDPOINTS
+    // ==============================================
+
+    /**
+     * Get all users
+     */
+    public function users(Request $request): JsonResponse
+    {
+        $query = User::query();
+
+        if ($request->search) {
+            $query->where('name', 'like', "%{$request->search}%")
+                  ->orWhere('email', 'like', "%{$request->search}%");
+        }
+
+        if ($request->role) {
+            $query->where('role', $request->role);
+        }
+
+        $users = $query->paginate($request->per_page ?? 15);
+
+        return response()->json([
+            'success' => true,
+            'data' => $users
+        ]);
+    }
+
+    /**
+     * Get single user by ID
+     */
+    public function showUser(int $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $user
+        ]);
+    }
+
+    /**
+     * Create new user
+     */
+    public function storeUser(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'role' => 'required|in:admin,teacher,student',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
+            'gender' => 'nullable|in:male,female,other',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'date_of_birth' => $request->date_of_birth,
+            'gender' => $request->gender,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully',
+            'data' => $user
+        ], 201);
+    }
+
+    /**
+     * Update user
+     */
+    public function updateUser(Request $request, int $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => "sometimes|required|string|email|max:255|unique:users,email,{$id}",
+            'password' => 'sometimes|string|min:8',
+            'role' => 'sometimes|required|in:admin,teacher,student',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
+            'gender' => 'nullable|in:male,female,other',
+        ]);
+
+        $updateData = $request->only([
+            'name', 'email', 'role', 'phone', 'address', 'date_of_birth', 'gender'
+        ]);
+
+        if ($request->password) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'data' => $user->fresh()
+        ]);
+    }
+
+    /**
+     * Delete user
+     */
+    public function destroyUser(int $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Prevent deleting the current admin user
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete your own account'
+            ], 403);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User deleted successfully'
+        ]);
+    }
+
+    // ==============================================
+    // COURSE CRUD ENDPOINTS
+    // ==============================================
+
+    /**
+     * Get single course by ID
+     */
+    public function showCourse(int $id): JsonResponse
+    {
+        $course = Course::with(['department', 'teacher.user'])->find($id);
+
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $course
+        ]);
+    }
+
+    /**
+     * Update course
+     */
+    public function updateCourse(Request $request, int $id): JsonResponse
+    {
+        $course = Course::find($id);
+
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found'
+            ], 404);
+        }
+
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'code' => "sometimes|required|string|unique:courses,code,{$id}",
+            'department_id' => 'sometimes|required|exists:departments,id',
+            'teacher_id' => 'sometimes|required|exists:teachers,id',
+            'credits' => 'sometimes|required|integer|min:1',
+            'semester' => 'sometimes|required|integer|min:1',
+            'start_date' => 'sometimes|required|date',
+            'end_date' => 'sometimes|required|date|after:start_date',
+            'max_students' => 'nullable|integer|min:1',
+            'description' => 'nullable|string',
+            'status' => 'sometimes|in:active,inactive,completed,cancelled',
+        ]);
+
+        $course->update($request->only([
+            'name', 'code', 'department_id', 'teacher_id', 'credits', 
+            'semester', 'start_date', 'end_date', 'max_students', 
+            'description', 'status'
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Course updated successfully',
+            'data' => $course->fresh()->load('department', 'teacher.user')
+        ]);
+    }
+
+    /**
+     * Delete course
+     */
+    public function destroyCourse(int $id): JsonResponse
+    {
+        $course = Course::find($id);
+
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found'
+            ], 404);
+        }
+
+        // Check if course has enrollments
+        $hasEnrollments = Enrollment::where('course_id', $id)->exists();
+        
+        if ($hasEnrollments) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete course with existing enrollments. Please remove enrollments first.'
+            ], 409);
+        }
+
+        $course->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Course deleted successfully'
+        ]);
     }
 }

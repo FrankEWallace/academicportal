@@ -7,8 +7,10 @@ import {
   BookOpen, 
   CreditCard,
   TrendingUp,
-  Clock
+  Clock,
+  Loader2
 } from "lucide-react";
+import { useAdminDashboard, useCourses, useUsers } from "@/hooks/useApi";
 import {
   BarChart,
   Bar,
@@ -63,6 +65,26 @@ const recentPayments = [
 ];
 
 const AdminDashboard = () => {
+  const { data: dashboardData, isLoading: dashboardLoading } = useAdminDashboard();
+  const { data: courses, isLoading: coursesLoading } = useCourses();
+  const { data: users, isLoading: usersLoading } = useUsers();
+
+  if (dashboardLoading || coursesLoading || usersLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading dashboard...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Calculate stats from real data
+  const totalStudents = users?.data?.filter(user => user.role === 'student').length || 0;
+  const totalTeachers = users?.data?.filter(user => user.role === 'teacher').length || 0;
+  const totalCourses = courses?.data?.length || 0;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -70,34 +92,34 @@ const AdminDashboard = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Students"
-            value="1,284"
+            value={totalStudents.toString()}
             icon={Users}
             description="Active enrollments"
-            trend={{ value: "12% from last month", positive: true }}
+            trend={{ value: "Live data", positive: true }}
             colorClass="bg-primary"
           />
           <StatCard
             title="Total Teachers"
-            value="156"
+            value={totalTeachers.toString()}
             icon={GraduationCap}
             description="Faculty members"
-            trend={{ value: "3% from last month", positive: true }}
+            trend={{ value: "Live data", positive: true }}
             colorClass="bg-success"
           />
           <StatCard
             title="Total Courses"
-            value="89"
+            value={totalCourses.toString()}
             icon={BookOpen}
             description="Active courses"
-            trend={{ value: "5 new this semester", positive: true }}
+            trend={{ value: "Live data", positive: true }}
             colorClass="bg-info"
           />
           <StatCard
-            title="Fee Collection"
-            value="$185K"
+            title="Dashboard Stats"
+            value={dashboardData?.stats?.total_users ? dashboardData.stats.total_users.toString() : "N/A"}
             icon={CreditCard}
-            description="This semester"
-            trend={{ value: "8% from last month", positive: true }}
+            description="Total system users"
+            trend={{ value: "Live data", positive: true }}
             colorClass="bg-warning"
           />
         </div>
@@ -193,18 +215,18 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentEnrollments.map((enrollment) => (
-                    <TableRow key={enrollment.id}>
+                  {users?.data?.filter(user => user.role === 'student').slice(0, 4).map((student) => (
+                    <TableRow key={student.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{enrollment.name}</div>
-                          <div className="text-xs text-muted-foreground">{enrollment.id}</div>
+                          <div className="font-medium">{student.name}</div>
+                          <div className="text-xs text-muted-foreground">{student.email}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm">{enrollment.program}</TableCell>
+                      <TableCell className="text-sm">Computer Science</TableCell>
                       <TableCell>
-                        <Badge variant={enrollment.status === "Active" ? "default" : "secondary"}>
-                          {enrollment.status}
+                        <Badge variant="default">
+                          Active
                         </Badge>
                       </TableCell>
                     </TableRow>
