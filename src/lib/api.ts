@@ -45,6 +45,30 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  first_page_url: string;
+  last_page_url: string;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+  path: string;
+  from: number;
+  to: number;
+}
+
+export interface ApiError {
+  success: false;
+  message: string;
+  status_code: number;
+  errors?: Record<string, string[]> | Record<string, any>;
+  timestamp: string;
+  request_id?: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -57,6 +81,22 @@ export interface LoginResponse {
   token_type: string;
 }
 
+export interface Enrollment {
+  id: number;
+  student_id: number;
+  course_id: number;
+  enrollment_date: string;
+  status: 'enrolled' | 'completed' | 'dropped' | 'failed';
+  grade: string | null;
+  credits_earned: number | null;
+  student?: {
+    id: number;
+    user: User;
+    student_id: string;
+  };
+  course?: Course;
+}
+
 // Storage for auth token
 const TOKEN_KEY = 'academic_portal_token';
 
@@ -65,6 +105,56 @@ export const authStorage = {
   setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
   removeToken: () => localStorage.removeItem(TOKEN_KEY),
 };
+
+// Custom Error Class for API errors
+export class ApiClientError extends Error {
+  public statusCode: number;
+  public errors?: Record<string, any>;
+  public apiResponse?: ApiError;
+
+  constructor(
+    message: string, 
+    statusCode: number = 500, 
+    errors?: Record<string, any>,
+    apiResponse?: ApiError
+  ) {
+    super(message);
+    this.name = 'ApiClientError';
+    this.statusCode = statusCode;
+    this.errors = errors;
+    this.apiResponse = apiResponse;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      statusCode: this.statusCode,
+      errors: this.errors,
+      apiResponse: this.apiResponse,
+    };
+  }
+
+  isValidationError(): boolean {
+    return this.statusCode === 422;
+  }
+
+  isAuthenticationError(): boolean {
+    return this.statusCode === 401;
+  }
+
+  isAuthorizationError(): boolean {
+    return this.statusCode === 403;
+  }
+
+  isNotFoundError(): boolean {
+    return this.statusCode === 404;
+  }
+
+  isServerError(): boolean {
+    return this.statusCode >= 500;
+  }
+}
 
 // API Client Class
 class ApiClient {
@@ -84,6 +174,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'X-Request-ID': `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
@@ -94,13 +185,37 @@ class ApiClient {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        let errorData: ApiError;
+        
+        try {
+          errorData = await response.json() as ApiError;
+        } catch {
+          // If response is not JSON, create a standard error
+          errorData = {
+            success: false,
+            message: `HTTP ${response.status}: ${response.statusText}`,
+            status_code: response.status,
+            timestamp: new Date().toISOString(),
+          };
+        }
+
+        // Create a more detailed error
+        const error = new ApiClientError(
+          errorData.message || `HTTP error! status: ${response.status}`,
+          errorData.status_code || response.status,
+          errorData.errors,
+          errorData
+        );
+        
+        throw error;
       }
 
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('API request failed:', {
+        endpoint,
+        error: error instanceof ApiClientError ? error.toJSON() : error,
+      });
       throw error;
     }
   }
@@ -126,8 +241,8 @@ class ApiClient {
   }
 
   // Courses Methods
-  async getCourses(): Promise<ApiResponse<{ data: Course[] }>> {
-    return this.request<ApiResponse<{ data: Course[] }>>('/admin/courses');
+  async getCourses(): Promise<ApiResponse<PaginatedResponse<Course>>> {
+    return this.request<ApiResponse<PaginatedResponse<Course>>>('/admin/courses');
   }
 
   async getCourse(id: number): Promise<ApiResponse<Course>> {
@@ -155,12 +270,35 @@ class ApiClient {
   }
 
   // Users Methods
-  async getUsers(): Promise<ApiResponse<{ data: User[] }>> {
-    return this.request<ApiResponse<{ data: User[] }>>('/admin/users');
+  async getUsers(): Promise<ApiResponse<PaginatedResponse<User>>> {
+    return this.request<ApiResponse<PaginatedResponse<User>>>('/admin/users');
   }
 
   async getUser(id: number): Promise<ApiResponse<User>> {
     return this.request<ApiResponse<User>>(`/admin/users/${id}`);
+  }
+
+  // Enrollment Methods
+  async enrollStudent(courseId: number, studentId: number): Promise<ApiResponse<Enrollment>> {
+    return this.request<ApiResponse<Enrollment>>('/admin/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({ course_id: courseId, student_id: studentId }),
+    });
+  }
+
+  async unenrollStudent(enrollmentId: number): Promise<ApiResponse<{}>> {
+    return this.request<ApiResponse<{}>>(`/admin/enrollments/${enrollmentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getStudentCourses(studentId?: number): Promise<ApiResponse<Enrollment[]>> {
+    const endpoint = studentId ? `/admin/students/${studentId}/courses` : '/student/courses';
+    return this.request<ApiResponse<Enrollment[]>>(endpoint);
+  }
+
+  async getCourseEnrollments(courseId: number): Promise<ApiResponse<Enrollment[]>> {
+    return this.request<ApiResponse<Enrollment[]>>(`/admin/courses/${courseId}/enrollments`);
   }
 
   // Dashboard Methods

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,8 @@ import {
   BookOpen, 
   Users, 
   Loader2,
-  Search
+  Search,
+  Eye
 } from "lucide-react";
 import { 
   useCourses, 
@@ -38,9 +40,10 @@ import {
   useUpdateCourse, 
   useDeleteCourse 
 } from "@/hooks/useApi";
-import { Course } from "@/lib/api";
+import { Course, PaginatedResponse } from "@/lib/api";
 
 const CoursesManagement = () => {
+  const navigate = useNavigate();
   const { data: coursesResponse, isLoading } = useCourses();
   const createCourseMutation = useCreateCourse();
   const updateCourseMutation = useUpdateCourse();
@@ -59,13 +62,14 @@ const CoursesManagement = () => {
     credits: 3,
     department_id: 1,
     teacher_id: 1,
-    semester: 1,
+    semester: "1",
     section: "A",
     room: "",
     max_students: 30,
+    department: "", // Add department name field for display
   });
 
-  const courses = coursesResponse?.data || [];
+  const courses = (coursesResponse as PaginatedResponse<Course>)?.data || [];
 
   // Filter courses based on search term
   const filteredCourses = courses.filter(course =>
@@ -82,16 +86,22 @@ const CoursesManagement = () => {
       credits: 3,
       department_id: 1,
       teacher_id: 1,
-      semester: 1,
+      semester: "1",
       section: "A",
       room: "",
       max_students: 30,
+      department: "",
     });
   };
 
   const handleCreateCourse = (e: React.FormEvent) => {
     e.preventDefault();
-    createCourseMutation.mutate(formData, {
+    const { department, ...courseData } = formData;
+    const submitData = {
+      ...courseData,
+      semester: parseInt(formData.semester),
+    };
+    createCourseMutation.mutate(submitData, {
       onSuccess: () => {
         setIsCreateDialogOpen(false);
         resetForm();
@@ -108,10 +118,11 @@ const CoursesManagement = () => {
       credits: course.credits,
       department_id: course.department_id,
       teacher_id: course.teacher_id,
-      semester: course.semester,
+      semester: course.semester.toString(),
       section: course.section,
       room: course.room,
       max_students: course.max_students,
+      department: course.department?.name || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -120,8 +131,14 @@ const CoursesManagement = () => {
     e.preventDefault();
     if (!editingCourse) return;
 
+    const { department, ...courseData } = formData;
+    const updateData = {
+      ...courseData,
+      semester: parseInt(formData.semester),
+    };
+
     updateCourseMutation.mutate(
-      { id: editingCourse.id, ...formData },
+      { id: editingCourse.id, ...updateData },
       {
         onSuccess: () => {
           setIsEditDialogOpen(false);
@@ -293,7 +310,9 @@ const CoursesManagement = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{course.department}</TableCell>
+                    <TableCell>
+                      {course.department?.name || 'No Department'}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{course.credits} Credits</Badge>
                     </TableCell>
@@ -306,6 +325,13 @@ const CoursesManagement = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/courses/${course.id}`)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"

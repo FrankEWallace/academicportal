@@ -679,4 +679,125 @@ class AdminController extends Controller
             'message' => 'Course deleted successfully'
         ]);
     }
+
+    // Enrollment Management
+    public function storeEnrollment(Request $request)
+    {
+        $validated = $request->validate([
+            'course_id' => 'required|exists:courses,id',
+            'student_id' => 'required|exists:users,id'
+        ]);
+
+        // Check if user is actually a student
+        $user = User::find($validated['student_id']);
+        if ($user->role !== 'student') {
+            return response()->json([
+                'success' => false,
+                'message' => 'User is not a student'
+            ], 422);
+        }
+
+        // Check if already enrolled
+        $existingEnrollment = Enrollment::where('course_id', $validated['course_id'])
+            ->where('student_id', $validated['student_id'])
+            ->first();
+
+        if ($existingEnrollment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student is already enrolled in this course'
+            ], 422);
+        }
+
+        // Check course capacity
+        $course = Course::find($validated['course_id']);
+        $currentEnrollments = Enrollment::where('course_id', $validated['course_id'])
+            ->where('status', 'enrolled')
+            ->count();
+
+        if ($currentEnrollments >= $course->max_students) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course is at maximum capacity'
+            ], 422);
+        }
+
+        $enrollment = Enrollment::create([
+            'course_id' => $validated['course_id'],
+            'student_id' => $validated['student_id'],
+            'enrollment_date' => now(),
+            'status' => 'enrolled'
+        ]);
+
+        $enrollment->load(['student.user', 'course']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $enrollment,
+            'message' => 'Student enrolled successfully'
+        ], 201);
+    }
+
+    public function destroyEnrollment($id)
+    {
+        $enrollment = Enrollment::find($id);
+
+        if (!$enrollment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Enrollment not found'
+            ], 404);
+        }
+
+        $enrollment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Student unenrolled successfully'
+        ]);
+    }
+
+    public function getCourseEnrollments($courseId)
+    {
+        $course = Course::find($courseId);
+
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found'
+            ], 404);
+        }
+
+        $enrollments = Enrollment::where('course_id', $courseId)
+            ->with(['student.user'])
+            ->orderBy('enrollment_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $enrollments
+        ]);
+    }
+
+    public function getStudentCourses($studentId)
+    {
+        $user = User::find($studentId);
+
+        if (!$user || $user->role !== 'student') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student not found'
+            ], 404);
+        }
+
+        $enrollments = Enrollment::where('student_id', $studentId)
+            ->with(['course.department', 'course.teacher.user'])
+            ->orderBy('enrollment_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $enrollments
+        ]);
+    }
 }

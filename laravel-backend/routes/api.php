@@ -52,6 +52,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/courses/{id}', [AdminController::class, 'updateCourse']);
         Route::delete('/courses/{id}', [AdminController::class, 'destroyCourse']);
         
+        // Enrollment Management
+        Route::post('/enrollments', [AdminController::class, 'storeEnrollment']);
+        Route::delete('/enrollments/{id}', [AdminController::class, 'destroyEnrollment']);
+        Route::get('/courses/{id}/enrollments', [AdminController::class, 'getCourseEnrollments']);
+        Route::get('/students/{id}/courses', [AdminController::class, 'getStudentCourses']);
+        
         // Students Management
         Route::get('/students', [AdminController::class, 'students']);
         Route::post('/students', [AdminController::class, 'storeStudent']);
@@ -82,7 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Student Routes
     Route::prefix('student')->middleware('role:student')->group(function () {
         Route::get('/dashboard', [StudentController::class, 'dashboard']);
-        Route::get('/courses', [StudentController::class, 'courses']);
+        Route::get('/courses', [StudentController::class, 'myCourses']);
         Route::get('/grades', [StudentController::class, 'grades']);
         Route::get('/attendance', [StudentController::class, 'attendance']);
         Route::get('/fees', [StudentController::class, 'fees']);

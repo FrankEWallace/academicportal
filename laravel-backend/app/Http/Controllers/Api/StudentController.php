@@ -193,4 +193,30 @@ class StudentController extends Controller
 
         return $enrollments->toArray();
     }
+
+    /**
+     * Get current student's enrolled courses
+     */
+    public function myCourses(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $student = $user->student;
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student profile not found'
+            ], 404);
+        }
+
+        $enrollments = Enrollment::where('student_id', $student->id)
+            ->with(['course.department', 'course.teacher.user'])
+            ->orderBy('enrollment_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $enrollments
+        ]);
+    }
 }

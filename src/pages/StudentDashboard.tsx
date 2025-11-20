@@ -2,9 +2,30 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Calendar, TrendingUp, Bell } from "lucide-react";
+import { BookOpen, Calendar, TrendingUp, Bell, Loader2 } from "lucide-react";
+import { useStudentCourses, useCurrentUser } from "@/hooks/useApi";
+import { useNavigate } from "react-router-dom";
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
+  const { data: currentUser } = useCurrentUser();
+  const { data: enrollments, isLoading: enrollmentsLoading } = useStudentCourses();
+
+  const activeEnrollments = enrollments?.filter(e => e.status === 'enrolled') || [];
+  const totalCredits = activeEnrollments.reduce((total, enrollment) => {
+    return total + (enrollment.course?.credits || 0);
+  }, 0);
+
+  if (enrollmentsLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading dashboard...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -13,11 +34,11 @@ const StudentDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-                JS
+                {currentUser?.data?.name?.charAt(0) || 'S'}
               </div>
               <div>
-                <h2 className="text-2xl font-bold">Welcome back, John Smith!</h2>
-                <p className="text-primary-foreground/80">Student ID: STU001 • Computer Science</p>
+                <h2 className="text-2xl font-bold">Welcome back, {currentUser?.data?.name || 'Student'}!</h2>
+                <p className="text-primary-foreground/80">Student ID: STU{currentUser?.data?.id.toString().padStart(3, '0')} • Computer Science</p>
               </div>
             </div>
           </CardContent>
@@ -46,8 +67,8 @@ const StudentDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">6</div>
-              <p className="text-xs text-muted-foreground mt-1">18 credit hours</p>
+              <div className="text-3xl font-bold">{activeEnrollments.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">{totalCredits} credit hours</p>
             </CardContent>
           </Card>
 
@@ -127,29 +148,41 @@ const StudentDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
-              {[
-                { code: "CS301", name: "Data Structures", teacher: "Dr. Smith", progress: 65 },
-                { code: "CS302", name: "Database Systems", teacher: "Prof. Johnson", progress: 58 },
-                { code: "CS303", name: "Web Development", teacher: "Dr. Williams", progress: 72 },
-                { code: "CS304", name: "Algorithms", teacher: "Prof. Davis", progress: 45 },
-              ].map((course) => (
-                <div key={course.code} className="p-4 border border-border rounded-lg space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-semibold">{course.name}</div>
-                      <div className="text-sm text-muted-foreground">{course.code}</div>
+              {activeEnrollments.length > 0 ? (
+                activeEnrollments.map((enrollment) => (
+                  <div 
+                    key={enrollment.id} 
+                    className="p-4 border border-border rounded-lg space-y-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigate(`/courses/${enrollment.course?.id}`)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-semibold">{enrollment.course?.name}</div>
+                        <div className="text-sm text-muted-foreground">{enrollment.course?.code}</div>
+                      </div>
+                      <Badge variant="outline">{enrollment.course?.teacher?.user?.name || 'No teacher'}</Badge>
                     </div>
-                    <Badge variant="outline">{course.teacher}</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">{course.progress}%</span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Credits</span>
+                        <span className="font-medium">{enrollment.course?.credits} credits</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Status</span>
+                        <Badge variant="default" className="text-xs">{enrollment.status}</Badge>
+                      </div>
                     </div>
-                    <Progress value={course.progress} />
                   </div>
+                ))
+              ) : (
+                <div className="col-span-2 text-center py-8">
+                  <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Enrolled Courses</h3>
+                  <p className="text-muted-foreground">
+                    You are not currently enrolled in any courses.
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrollment API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 8px 16px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Enrollment System API Test</h1>
+    
+    <div class="test-section">
+        <h3>🔐 Authentication</h3>
+        <input type="email" id="email" placeholder="Email" value="admin@academic.com">
+        <select id="role">
+            <option value="admin">Admin</option>
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+        </select>
+        <input type="password" id="password" placeholder="Password" value="password">
+        <button onclick="testLogin()">Login</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📚 Get Courses</h3>
+        <button onclick="getCourses()">Fetch Courses</button>
+        <div id="courses-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>👥 Get Students</h3>
+        <button onclick="getUsers()">Fetch Users</button>
+        <div id="users-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>✏️ Test Enrollment</h3>
+        <input type="number" id="courseId" placeholder="Course ID" value="1">
+        <input type="number" id="studentId" placeholder="Student ID" value="2">
+        <button onclick="enrollStudent()">Enroll Student</button>
+        <button onclick="getCourseEnrollments()">Get Course Enrollments</button>
+        <div id="enrollment-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🎓 Student Courses</h3>
+        <input type="number" id="checkStudentId" placeholder="Student ID" value="2">
+        <button onclick="getStudentCourses()">Get Student Courses</button>
+        <div id="student-courses-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let authToken = null;
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isError ? 'error' : 'success'} result">${JSON.stringify(data, null, 2)}</div>`;
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            };
+            
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method,
+                    headers,
+                    body: body ? JSON.stringify(body) : null
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+                }
+                
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const role = document.getElementById('role').value;
+
+                const result = await apiCall('/auth/login', 'POST', {
+                    email,
+                    password,
+                    role
+                });
+
+                authToken = result.data.token;
+                showResult('auth-result', {
+                    success: true,
+                    user: result.data.user,
+                    token: result.data.token.substring(0, 20) + '...'
+                });
+            } catch (error) {
+                showResult('auth-result', { error: error.message }, true);
+            }
+        }
+
+        async function getCourses() {
+            try {
+                const result = await apiCall('/admin/courses');
+                showResult('courses-result', result);
+            } catch (error) {
+                showResult('courses-result', { error: error.message }, true);
+            }
+        }
+
+        async function getUsers() {
+            try {
+                const result = await apiCall('/admin/users');
+                showResult('users-result', result);
+            } catch (error) {
+                showResult('users-result', { error: error.message }, true);
+            }
+        }
+
+        async function enrollStudent() {
+            try {
+                const courseId = document.getElementById('courseId').value;
+                const studentId = document.getElementById('studentId').value;
+
+                const result = await apiCall('/admin/enrollments', 'POST', {
+                    course_id: parseInt(courseId),
+                    student_id: parseInt(studentId)
+                });
+
+                showResult('enrollment-result', result);
+            } catch (error) {
+                showResult('enrollment-result', { error: error.message }, true);
+            }
+        }
+
+        async function getCourseEnrollments() {
+            try {
+                const courseId = document.getElementById('courseId').value;
+                const result = await apiCall(`/admin/courses/${courseId}/enrollments`);
+                showResult('enrollment-result', result);
+            } catch (error) {
+                showResult('enrollment-result', { error: error.message }, true);
+            }
+        }
+
+        async function getStudentCourses() {
+            try {
+                const studentId = document.getElementById('checkStudentId').value;
+                const result = await apiCall(`/admin/students/${studentId}/courses`);
+                showResult('student-courses-result', result);
+            } catch (error) {
+                showResult('student-courses-result', { error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>
