@@ -13,19 +13,35 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!$request->user()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthenticated'
+                'message' => 'Authentication required',
+                'error_code' => 'UNAUTHENTICATED'
             ], 401);
         }
 
-        if ($request->user()->role !== $role) {
+        $user = $request->user();
+        
+        // Check if user account is active
+        if (!$user->is_active) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Insufficient permissions.'
+                'message' => 'User account is inactive',
+                'error_code' => 'USER_INACTIVE'
+            ], 401);
+        }
+
+        // Check if user has any of the required roles
+        if (!empty($roles) && !in_array($user->role, $roles)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient permissions. Required role(s): ' . implode(', ', $roles),
+                'error_code' => 'INSUFFICIENT_PERMISSIONS',
+                'user_role' => $user->role,
+                'required_roles' => $roles
             ], 403);
         }
 

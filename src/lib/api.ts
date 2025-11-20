@@ -75,6 +75,14 @@ export interface LoginRequest {
   role: 'admin' | 'student' | 'teacher';
 }
 
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  role: 'admin' | 'student' | 'teacher';
+}
+
 export interface LoginResponse {
   user: User;
   token: string;
@@ -221,6 +229,13 @@ class ApiClient {
   }
 
   // Authentication Methods
+  async register(userData: RegisterRequest): Promise<ApiResponse<LoginResponse>> {
+    return this.request<ApiResponse<LoginResponse>>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
   async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
     return this.request<ApiResponse<LoginResponse>>('/auth/login', {
       method: 'POST',

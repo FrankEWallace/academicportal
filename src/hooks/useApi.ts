@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, Course, User, LoginRequest, Enrollment, authStorage, ApiClientError, PaginatedResponse } from '@/lib/api';
+import { api, Course, User, LoginRequest, RegisterRequest, Enrollment, authStorage, ApiClientError, PaginatedResponse } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 // Enhanced error handler for API calls
@@ -50,6 +50,25 @@ const handleQueryError = (error: unknown) => {
 };
 
 // Authentication Hooks
+export const useRegister = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (userData: RegisterRequest) => api.register(userData),
+    onSuccess: (data) => {
+      if (data.success) {
+        authStorage.setToken(data.data.token);
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        toast({
+          title: "Registration Successful",
+          description: `Welcome to Academic Portal, ${data.data.user.name}!`,
+        });
+      }
+    },
+    onError: (error) => handleApiError(error, "Registration Failed")
+  });
+};
+
 export const useLogin = () => {
   const queryClient = useQueryClient();
   

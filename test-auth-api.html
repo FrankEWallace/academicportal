@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration & Login API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 8px 16px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 200px; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        h1 { color: #333; }
+        h3 { color: #666; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Academic Portal API Test</h1>
+    
+    <div class="section">
+        <h3>📝 User Registration Test</h3>
+        <input type="text" id="regName" placeholder="Full Name" value="John Doe">
+        <input type="email" id="regEmail" placeholder="Email" value="john.doe@example.com">
+        <input type="password" id="regPassword" placeholder="Password" value="password123">
+        <input type="password" id="regPasswordConfirm" placeholder="Confirm Password" value="password123">
+        <select id="regRole">
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="admin">Admin</option>
+        </select>
+        <br>
+        <button onclick="testRegister()">Register User</button>
+        <div id="register-result"></div>
+    </div>
+
+    <div class="section">
+        <h3>🔐 User Login Test</h3>
+        <input type="email" id="loginEmail" placeholder="Email" value="john.doe@example.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="password123">
+        <select id="loginRole">
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="admin">Admin</option>
+        </select>
+        <br>
+        <button onclick="testLogin()">Login User</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="section">
+        <h3>👤 Get Current User Test</h3>
+        <button onclick="getCurrentUser()">Get Current User</button>
+        <div id="user-result"></div>
+    </div>
+
+    <div class="section">
+        <h3>🚪 Logout Test</h3>
+        <button onclick="testLogout()">Logout</button>
+        <div id="logout-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('test_token');
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isError ? 'error' : 'success'} result">${JSON.stringify(data, null, 2)}</div>`;
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            };
+            
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method,
+                    headers,
+                    body: body ? JSON.stringify(body) : null
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${JSON.stringify(data)}`);
+                }
+                
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function testRegister() {
+            try {
+                const name = document.getElementById('regName').value;
+                const email = document.getElementById('regEmail').value;
+                const password = document.getElementById('regPassword').value;
+                const password_confirmation = document.getElementById('regPasswordConfirm').value;
+                const role = document.getElementById('regRole').value;
+
+                const result = await apiCall('/auth/register', 'POST', {
+                    name,
+                    email,
+                    password,
+                    password_confirmation,
+                    role
+                });
+
+                if (result.success) {
+                    authToken = result.data.token;
+                    localStorage.setItem('test_token', authToken);
+                }
+
+                showResult('register-result', result);
+            } catch (error) {
+                showResult('register-result', { error: error.message }, true);
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const role = document.getElementById('loginRole').value;
+
+                const result = await apiCall('/auth/login', 'POST', {
+                    email,
+                    password,
+                    role
+                });
+
+                if (result.success) {
+                    authToken = result.data.token;
+                    localStorage.setItem('test_token', authToken);
+                }
+
+                showResult('login-result', result);
+            } catch (error) {
+                showResult('login-result', { error: error.message }, true);
+            }
+        }
+
+        async function getCurrentUser() {
+            try {
+                const result = await apiCall('/auth/me');
+                showResult('user-result', result);
+            } catch (error) {
+                showResult('user-result', { error: error.message }, true);
+            }
+        }
+
+        async function testLogout() {
+            try {
+                const result = await apiCall('/auth/logout', 'POST');
+                authToken = null;
+                localStorage.removeItem('test_token');
+                showResult('logout-result', result);
+            } catch (error) {
+                showResult('logout-result', { error: error.message }, true);
+            }
+        }
+
+        // Auto-load token on page load
+        if (authToken) {
+            console.log('Auth token loaded:', authToken.substring(0, 20) + '...');
+        }
+    </script>
+</body>
+</html>

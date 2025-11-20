@@ -49,19 +49,17 @@ class AuthController extends Controller
         // Create new token
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // Load role-specific relationship if available
-        $userWithRelation = $user;
-        if ($user->role === 'student' && method_exists($user, 'student')) {
-            $userWithRelation = $user->load('student');
-        } elseif ($user->role === 'teacher' && method_exists($user, 'teacher')) {
-            $userWithRelation = $user->load('teacher');
+        // Load role-specific data only if relationship exists
+        $userData = $user;
+        if (in_array($user->role, ['student', 'teacher'])) {
+            $userData = $user->load($user->role);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
             'data' => [
-                'user' => $userWithRelation,
+                'user' => $userData,
                 'token' => $token,
                 'token_type' => 'Bearer'
             ]
@@ -82,14 +80,159 @@ class AuthController extends Controller
     }
 
     /**
-     * Get authenticated user
+     * Get authenticated user with detailed information
      */
     public function me(Request $request)
     {
+        $user = $request->user();
+        
+        // Load role-specific data only if relationship exists
+        $userData = $user;
+        if (in_array($user->role, ['student', 'teacher'])) {
+            $userData = $user->load($user->role);
+        }
+        
+        // Get user permissions based on role
+        $permissions = $this->getUserPermissions($user->role);
+        
         return response()->json([
             'success' => true,
-            'data' => $request->user()->load('student', 'teacher')
+            'data' => [
+                'user' => $userData,
+                'permissions' => $permissions,
+                'token_info' => [
+                    'created_at' => $user->currentAccessToken()->created_at,
+                    'last_used_at' => $user->currentAccessToken()->last_used_at,
+                ]
+            ]
         ]);
+    }
+
+    /**
+     * Get permissions for a specific role
+     */
+    private function getUserPermissions(string $role): array
+    {
+        $rolePermissions = [
+            'admin' => [
+                'users.create', 'users.read', 'users.update', 'users.delete',
+                'courses.create', 'courses.read', 'courses.update', 'courses.delete',
+                'students.create', 'students.read', 'students.update', 'students.delete',
+                'teachers.create', 'teachers.read', 'teachers.update', 'teachers.delete',
+                'departments.create', 'departments.read', 'departments.update', 'departments.delete',
+                'enrollments.create', 'enrollments.read', 'enrollments.update', 'enrollments.delete',
+                'attendance.create', 'attendance.read', 'attendance.update', 'attendance.delete',
+                'grades.create', 'grades.read', 'grades.update', 'grades.delete',
+                'fees.create', 'fees.read', 'fees.update', 'fees.delete',
+                'announcements.create', 'announcements.read', 'announcements.update', 'announcements.delete',
+                'dashboard.admin'
+            ],
+            'teacher' => [
+                'courses.read', 'students.read', 
+                'attendance.create', 'attendance.read', 'attendance.update',
+                'grades.create', 'grades.read', 'grades.update',
+                'announcements.read',
+                'dashboard.teacher'
+            ],
+            'student' => [
+                'courses.read', 'enrollments.create',
+                'attendance.read', 'grades.read', 'fees.read',
+                'announcements.read',
+                'dashboard.student'
+            ]
+        ];
+
+        return $rolePermissions[$role] ?? [];
+    }
+
+    /**
+     * Register new user
+     */
+    public function register(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|string|in:student,teacher',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Create user
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+                'is_active' => true,
+            ]);
+
+            // Create role-specific record
+            if ($request->role === 'student') {
+                // Get default department or create one
+                $defaultDepartment = \App\Models\Department::firstOrCreate([
+                    'name' => 'General Studies'
+                ], [
+                    'code' => 'GEN',
+                    'description' => 'Default department for new students'
+                ]);
+
+                $user->student()->create([
+                    'student_id' => 'STU' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
+                    'department_id' => $defaultDepartment->id,
+                    'batch' => date('Y'),
+                    'status' => 'enrolled',
+                    'admission_date' => now(),
+                ]);
+            } elseif ($request->role === 'teacher') {
+                // Get default department or create one
+                $defaultDepartment = \App\Models\Department::firstOrCreate([
+                    'name' => 'General Studies'
+                ], [
+                    'code' => 'GEN',
+                    'description' => 'Default department for new teachers'
+                ]);
+
+                $user->teacher()->create([
+                    'employee_id' => 'EMP' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
+                    'department_id' => $defaultDepartment->id,
+                    'designation' => 'Lecturer',
+                    'qualification' => 'To be updated',
+                    'joining_date' => now(),
+                ]);
+            }
+
+            // Create token
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            // Load role-specific data
+            $userData = $user->load($user->role);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User registered successfully',
+                'data' => [
+                    'user' => $userData,
+                    'token' => $token,
+                    'token_type' => 'Bearer'
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

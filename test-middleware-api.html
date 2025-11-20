@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Portal Auth & Middleware Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+        }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+        }
+        button { 
+            background: #007bff; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-right: 10px;
+        }
+        button:hover { 
+            background: #0056b3; 
+        }
+        .danger { 
+            background: #dc3545; 
+        }
+        .danger:hover { 
+            background: #c82333; 
+        }
+        .success { 
+            background: #28a745; 
+        }
+        .success:hover { 
+            background: #218838; 
+        }
+        .response { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 4px; 
+            padding: 10px; 
+            margin-top: 10px; 
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error { 
+            color: #dc3545; 
+        }
+        .success-text { 
+            color: #28a745; 
+        }
+        .token-display {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .endpoint-test {
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .endpoint-test h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Academic Portal Authentication & Middleware Test Suite</h1>
+    
+    <!-- Authentication Section -->
+    <div class="container">
+        <h2>🚀 Authentication</h2>
+        
+        <!-- Login Form -->
+        <div class="form-group">
+            <h3>Login</h3>
+            <label>Email:</label>
+            <input type="email" id="loginEmail" value="admin@admin.com" placeholder="Enter email">
+            
+            <label>Password:</label>
+            <input type="password" id="loginPassword" value="password123" placeholder="Enter password">
+            
+            <label>Role:</label>
+            <select id="loginRole">
+                <option value="admin">Admin</option>
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+            </select>
+            
+            <button onclick="login()">🔐 Login</button>
+            <button onclick="logout()" class="danger">🚪 Logout</button>
+            <button onclick="getMe()" class="success">👤 Get My Info</button>
+        </div>
+
+        <!-- Current Token Display -->
+        <div class="form-group">
+            <label>Current JWT Token:</label>
+            <div id="tokenDisplay" class="token-display">No token set</div>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="form-group">
+            <h3>Registration (Test)</h3>
+            <label>Name:</label>
+            <input type="text" id="regName" value="Test User" placeholder="Enter name">
+            
+            <label>Email:</label>
+            <input type="email" id="regEmail" value="testuser@example.com" placeholder="Enter email">
+            
+            <label>Password:</label>
+            <input type="password" id="regPassword" value="password123" placeholder="Enter password">
+            
+            <label>Confirm Password:</label>
+            <input type="password" id="regPasswordConfirm" value="password123" placeholder="Confirm password">
+            
+            <label>Role:</label>
+            <select id="regRole">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+            </select>
+            
+            <button onclick="register()">📝 Register</button>
+        </div>
+
+        <div id="authResponse" class="response"></div>
+    </div>
+
+    <!-- Middleware Testing Section -->
+    <div class="container">
+        <h2>🛡️ Middleware & Permission Testing</h2>
+        <p><strong>Note:</strong> Login first to get a token, then test these endpoints</p>
+        
+        <!-- Admin Only Routes -->
+        <div class="endpoint-test">
+            <h4>🔴 Admin Only Routes</h4>
+            <button onclick="testEndpoint('/api/admin/dashboard', 'GET')">Admin Dashboard</button>
+            <button onclick="testEndpoint('/api/admin/users', 'GET')">List Users</button>
+            <button onclick="testEndpoint('/api/admin/courses', 'POST', {name: 'Test Course', code: 'TEST101', credits: 3, department_id: 1})">Create Course</button>
+            <button onclick="testEndpoint('/api/enrollments', 'DELETE')">Delete Enrollment (ID required)</button>
+        </div>
+
+        <!-- Teacher Only Routes -->
+        <div class="endpoint-test">
+            <h4>🟡 Teacher Only Routes</h4>
+            <button onclick="testEndpoint('/api/teacher/dashboard', 'GET')">Teacher Dashboard</button>
+            <button onclick="testEndpoint('/api/teacher/courses', 'GET')">My Courses</button>
+            <button onclick="testEndpoint('/api/teacher/attendance', 'POST', {course_id: 1, date: '2024-01-01', attendance_data: []})">Mark Attendance</button>
+            <button onclick="testEndpoint('/api/teacher/students', 'GET')">My Students</button>
+        </div>
+
+        <!-- Student Only Routes -->
+        <div class="endpoint-test">
+            <h4>🟢 Student Only Routes</h4>
+            <button onclick="testEndpoint('/api/student/dashboard', 'GET')">Student Dashboard</button>
+            <button onclick="testEndpoint('/api/student/courses', 'GET')">My Courses</button>
+            <button onclick="testEndpoint('/api/student/grades', 'GET')">My Grades</button>
+            <button onclick="testEndpoint('/api/enrollments', 'POST', {course_id: 1})">Enroll in Course</button>
+        </div>
+
+        <!-- Common Authenticated Routes -->
+        <div class="endpoint-test">
+            <h4>🔵 Common Authenticated Routes</h4>
+            <button onclick="testEndpoint('/api/courses', 'GET')">List Courses</button>
+            <button onclick="testEndpoint('/api/courses/1', 'GET')">Course Details</button>
+            <button onclick="testEndpoint('/api/announcements', 'GET')">Announcements</button>
+        </div>
+
+        <!-- Public Routes -->
+        <div class="endpoint-test">
+            <h4>🟠 Public Routes (No Auth Required)</h4>
+            <button onclick="testEndpoint('/api/health', 'GET', null, false)">Health Check</button>
+        </div>
+
+        <div id="endpointResponse" class="response"></div>
+    </div>
+
+    <!-- Token Testing Section -->
+    <div class="container">
+        <h2>🔍 Token Testing</h2>
+        
+        <div class="form-group">
+            <label>Test Token (paste custom token):</label>
+            <input type="text" id="customToken" placeholder="Paste JWT token here">
+            <button onclick="setCustomToken()">Set Custom Token</button>
+        </div>
+        
+        <div class="endpoint-test">
+            <h4>Token Validation Tests</h4>
+            <button onclick="testWithoutToken()">❌ Test Without Token</button>
+            <button onclick="testWithInvalidToken()">❌ Test Invalid Token</button>
+            <button onclick="testTokenExpiration()">⏰ Test Token Info</button>
+        </div>
+
+        <div id="tokenTestResponse" class="response"></div>
+    </div>
+
+    <script>
+        const baseURL = 'http://localhost:8000';
+        let currentToken = localStorage.getItem('auth_token') || '';
+        let currentUser = null;
+
+        // Update token display
+        function updateTokenDisplay() {
+            const display = document.getElementById('tokenDisplay');
+            if (currentToken) {
+                display.textContent = currentToken;
+                display.className = 'token-display success-text';
+            } else {
+                display.textContent = 'No token set';
+                display.className = 'token-display error';
+            }
+        }
+
+        // Initialize
+        updateTokenDisplay();
+
+        // Login function
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const role = document.getElementById('loginRole').value;
+            
+            try {
+                const response = await fetch(`${baseURL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password, role })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.data.token;
+                    currentUser = data.data.user;
+                    localStorage.setItem('auth_token', currentToken);
+                    localStorage.setItem('current_user', JSON.stringify(currentUser));
+                    updateTokenDisplay();
+                    document.getElementById('authResponse').className = 'response success-text';
+                } else {
+                    document.getElementById('authResponse').className = 'response error';
+                }
+                
+                document.getElementById('authResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('authResponse').className = 'response error';
+                document.getElementById('authResponse').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Register function
+        async function register() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const password_confirmation = document.getElementById('regPasswordConfirm').value;
+            const role = document.getElementById('regRole').value;
+            
+            try {
+                const response = await fetch(`${baseURL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password, password_confirmation, role })
+                });
+                
+                const data = await response.json();
+                document.getElementById('authResponse').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('authResponse').className = data.success ? 'response success-text' : 'response error';
+            } catch (error) {
+                document.getElementById('authResponse').className = 'response error';
+                document.getElementById('authResponse').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            if (!currentToken) {
+                alert('No token to logout with');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${baseURL}/api/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                currentToken = '';
+                currentUser = null;
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('current_user');
+                updateTokenDisplay();
+                
+                document.getElementById('authResponse').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('authResponse').className = 'response success-text';
+            } catch (error) {
+                document.getElementById('authResponse').className = 'response error';
+                document.getElementById('authResponse').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Get current user info
+        async function getMe() {
+            if (!currentToken) {
+                alert('Login first to get user info');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${baseURL}/api/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('authResponse').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('authResponse').className = data.success ? 'response success-text' : 'response error';
+            } catch (error) {
+                document.getElementById('authResponse').className = 'response error';
+                document.getElementById('authResponse').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Test endpoint function
+        async function testEndpoint(endpoint, method = 'GET', body = null, useAuth = true) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            };
+            
+            if (useAuth && currentToken) {
+                headers['Authorization'] = `Bearer ${currentToken}`;
+            }
+            
+            const config = {
+                method,
+                headers
+            };
+            
+            if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+                config.body = JSON.stringify(body);
+            }
+            
+            try {
+                const response = await fetch(`${baseURL}${endpoint}`, config);
+                const data = await response.json();
+                
+                const responseDiv = document.getElementById('endpointResponse');
+                responseDiv.textContent = `${method} ${endpoint}\nStatus: ${response.status}\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                responseDiv.className = response.ok ? 'response success-text' : 'response error';
+            } catch (error) {
+                const responseDiv = document.getElementById('endpointResponse');
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `${method} ${endpoint}\nError: ${error.message}`;
+            }
+        }
+
+        // Set custom token
+        function setCustomToken() {
+            const customToken = document.getElementById('customToken').value;
+            if (customToken) {
+                currentToken = customToken;
+                localStorage.setItem('auth_token', customToken);
+                updateTokenDisplay();
+                document.getElementById('customToken').value = '';
+            }
+        }
+
+        // Test without token
+        async function testWithoutToken() {
+            const tempToken = currentToken;
+            currentToken = '';
+            
+            await testEndpoint('/api/auth/me', 'GET');
+            
+            currentToken = tempToken;
+            const responseDiv = document.getElementById('tokenTestResponse');
+            responseDiv.textContent = document.getElementById('endpointResponse').textContent;
+            responseDiv.className = 'response error';
+        }
+
+        // Test with invalid token
+        async function testWithInvalidToken() {
+            const tempToken = currentToken;
+            currentToken = 'invalid.token.here';
+            
+            await testEndpoint('/api/auth/me', 'GET');
+            
+            currentToken = tempToken;
+            const responseDiv = document.getElementById('tokenTestResponse');
+            responseDiv.textContent = document.getElementById('endpointResponse').textContent;
+            responseDiv.className = 'response error';
+        }
+
+        // Test token expiration info
+        async function testTokenExpiration() {
+            await getMe();
+            const responseDiv = document.getElementById('tokenTestResponse');
+            responseDiv.textContent = document.getElementById('authResponse').textContent;
+            responseDiv.className = document.getElementById('authResponse').className;
+        }
+    </script>
+</body>
+</html>
