@@ -11,6 +11,15 @@ export interface User {
   updated_at: string;
 }
 
+export interface UserMeResponse {
+  user: User;
+  permissions: string[];
+  token_info: {
+    created_at: string;
+    last_used_at: string;
+  };
+}
+
 export interface Course {
   id: number;
   name: string;
@@ -89,6 +98,22 @@ export interface LoginResponse {
   token_type: string;
 }
 
+export interface PasswordResetRequestRequest {
+  email: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+  token: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface PasswordResetResponse {
+  token?: string; // Only for development/testing
+  expires_in: string;
+}
+
 export interface Enrollment {
   id: number;
   student_id: number;
@@ -105,14 +130,26 @@ export interface Enrollment {
   course?: Course;
 }
 
-// Storage for auth token
+// Storage for auth token with event emitting
 const TOKEN_KEY = 'academic_portal_token';
 
-export const authStorage = {
-  getToken: (): string | null => localStorage.getItem(TOKEN_KEY),
-  setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
-  removeToken: () => localStorage.removeItem(TOKEN_KEY),
-};
+class AuthStorage extends EventTarget {
+  getToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  setToken(token: string): void {
+    localStorage.setItem(TOKEN_KEY, token);
+    this.dispatchEvent(new CustomEvent('tokenChanged', { detail: { token } }));
+  }
+
+  removeToken(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    this.dispatchEvent(new CustomEvent('tokenChanged', { detail: { token: null } }));
+  }
+}
+
+export const authStorage = new AuthStorage();
 
 // Custom Error Class for API errors
 export class ApiClientError extends Error {
@@ -251,8 +288,22 @@ class ApiClient {
     return response;
   }
 
-  async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request<ApiResponse<User>>('/auth/me');
+  async passwordResetRequest(data: PasswordResetRequestRequest): Promise<ApiResponse<PasswordResetResponse>> {
+    return this.request<ApiResponse<PasswordResetResponse>>('/auth/password-reset-request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async passwordReset(data: PasswordResetRequest): Promise<ApiResponse<{}>> {
+    return this.request<ApiResponse<{}>>('/auth/password-reset', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCurrentUser(): Promise<ApiResponse<UserMeResponse>> {
+    return this.request<ApiResponse<UserMeResponse>>('/auth/me');
   }
 
   // Courses Methods

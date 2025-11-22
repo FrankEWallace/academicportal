@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { useLogin } from "@/hooks/useApi";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [role, setRole] = useState<"admin" | "student" | "teacher" | "">("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,20 +37,9 @@ const Login = () => {
         {
           onSuccess: (data) => {
             if (data.success && data.data.user) {
-              // Navigate based on user role from API response
-              switch (data.data.user.role) {
-                case "admin":
-                  navigate("/admin");
-                  break;
-                case "student":
-                  navigate("/student");
-                  break;
-                case "teacher":
-                  navigate("/teacher");
-                  break;
-                default:
-                  navigate("/");
-              }
+              // Redirect to the page they were trying to access, or their dashboard
+              const from = location.state?.from?.pathname || `/${data.data.user.role}`;
+              navigate(from, { replace: true });
             }
           }
         }
@@ -125,12 +115,13 @@ const Login = () => {
             </div>
 
             <div className="flex justify-end">
-              <a 
-                href="#" 
+              <button 
+                type="button"
+                onClick={() => navigate('/password-reset-request')}
                 className="text-sm text-primary hover:underline"
               >
                 Forgot password?
-              </a>
+              </button>
             </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={loginMutation.isPending}>

@@ -1,13 +1,10 @@
 import { 
   LayoutDashboard, 
-  Users, 
-  GraduationCap, 
   BookOpen, 
-  Building2, 
-  ClipboardCheck,
+  GraduationCap,
+  Calendar,
   FileText,
-  CreditCard,
-  Megaphone,
+  Bell,
   Settings,
   LogOut
 } from "lucide-react";
@@ -26,7 +23,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { GraduationCap as Logo } from "lucide-react";
 
@@ -36,62 +32,46 @@ interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const menuItems: MenuItem[] = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Students", url: "/admin/students", icon: Users },
-  { title: "Teachers", url: "/admin/teachers", icon: GraduationCap },
-  { title: "Courses", url: "/admin/courses", icon: BookOpen },
-  { title: "Departments", url: "/admin/departments", icon: Building2 },
-  { title: "Attendance", url: "/admin/attendance", icon: ClipboardCheck },
-  { title: "Exams & Grades", url: "/admin/exams", icon: FileText },
-  { title: "Fees", url: "/admin/fees", icon: CreditCard },
-  { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
+const studentMenuItems: MenuItem[] = [
+  { title: "Dashboard", url: "/student", icon: LayoutDashboard },
+  { title: "My Courses", url: "/student/courses", icon: BookOpen },
+  { title: "Assignments", url: "/student/assignments", icon: FileText },
+  { title: "Schedule", url: "/student/schedule", icon: Calendar },
+  { title: "Grades", url: "/student/grades", icon: GraduationCap },
+  { title: "Announcements", url: "/student/announcements", icon: Bell },
 ];
 
-export function AppSidebar() {
+export function StudentSidebar() {
   const { state } = useSidebar();
   const { logout, user } = useAuth();
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar
-      className={isCollapsed ? "w-14" : "w-64"}
-      collapsible="icon"
-    >
-      <SidebarHeader className="p-4">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-sidebar-primary-foreground" />
-            </div>
+    <Sidebar>
+      <SidebarHeader className="p-4 border-b">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <Logo className="w-5 h-5 text-primary-foreground" />
+          </div>
+          {!isCollapsed && (
             <div>
-              <h2 className="font-bold text-sidebar-foreground">Academic Portal</h2>
-              <p className="text-xs text-sidebar-foreground/70">Admin Panel</p>
+              <h2 className="text-lg font-semibold text-sidebar-foreground">Academic Portal</h2>
+              <p className="text-xs text-sidebar-foreground/60">Student Dashboard</p>
             </div>
-          </div>
-        )}
-        {isCollapsed && (
-          <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center mx-auto">
-            <GraduationCap className="w-6 h-6 text-sidebar-primary-foreground" />
-          </div>
-        )}
+          )}
+        </div>
       </SidebarHeader>
 
-      <Separator />
-
-      <SidebarContent>
+      <SidebarContent className="px-4 py-6">
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
-            Main Menu
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {studentMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      end={item.url === "/admin"}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-sidebar-accent rounded-lg transition-colors"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     >
@@ -111,14 +91,14 @@ export function AppSidebar() {
           <div className="mb-4 p-3 bg-sidebar-accent/50 rounded-lg">
             <p className="text-sm font-medium text-sidebar-foreground">{user.name}</p>
             <p className="text-xs text-sidebar-foreground/60">{user.email}</p>
-            <p className="text-xs text-sidebar-foreground/60">Administrator</p>
+            <p className="text-xs text-sidebar-foreground/60">Student</p>
           </div>
         )}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <NavLink
-                to="/admin/settings"
+                to="/student/settings"
                 className="flex items-center gap-3 px-3 py-2 hover:bg-sidebar-accent rounded-lg transition-colors"
                 activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
               >

@@ -23,6 +23,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     
+    // Password Reset Routes (Public)
+    Route::post('/password-reset-request', [AuthController::class, 'passwordResetRequest']);
+    Route::post('/password-reset', [AuthController::class, 'passwordReset']);
+    
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);

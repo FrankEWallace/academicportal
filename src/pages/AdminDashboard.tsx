@@ -1,29 +1,19 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { StatCard } from "@/components/StatCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Users, 
-  GraduationCap, 
   BookOpen, 
-  CreditCard,
-  TrendingUp,
-  Clock,
-  Loader2
+  Calendar, 
+  TrendingUp, 
+  UserPlus, 
+  BookPlus,
+  GraduationCap,
+  Building2,
+  ClipboardCheck
 } from "lucide-react";
-import { useAdminDashboard, useCourses, useUsers } from "@/hooks/useApi";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
-} from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -32,250 +22,170 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-
-// Mock data for charts
-const enrollmentData = [
-  { month: "Jan", students: 400 },
-  { month: "Feb", students: 450 },
-  { month: "Mar", students: 520 },
-  { month: "Apr", students: 580 },
-  { month: "May", students: 620 },
-  { month: "Jun", students: 680 },
-];
-
-const feeCollectionData = [
-  { name: "Collected", value: 75, color: "hsl(var(--success))" },
-  { name: "Pending", value: 20, color: "hsl(var(--warning))" },
-  { name: "Overdue", value: 5, color: "hsl(var(--destructive))" },
-];
-
-const recentEnrollments = [
-  { id: "STU001", name: "John Smith", program: "Computer Science", date: "2024-01-15", status: "Active" },
-  { id: "STU002", name: "Sarah Johnson", program: "Business Admin", date: "2024-01-14", status: "Active" },
-  { id: "STU003", name: "Michael Brown", program: "Engineering", date: "2024-01-14", status: "Pending" },
-  { id: "STU004", name: "Emily Davis", program: "Medicine", date: "2024-01-13", status: "Active" },
-];
-
-const recentPayments = [
-  { id: "PAY001", student: "John Smith", amount: "$2,500", date: "2024-01-15", status: "Completed" },
-  { id: "PAY002", student: "Sarah Johnson", amount: "$2,500", date: "2024-01-14", status: "Completed" },
-  { id: "PAY003", student: "Michael Brown", amount: "$2,500", date: "2024-01-13", status: "Pending" },
-  { id: "PAY004", student: "Emily Davis", amount: "$2,500", date: "2024-01-12", status: "Completed" },
-];
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAdminDashboard } from "@/hooks/useApi";
 
 const AdminDashboard = () => {
-  const { data: dashboardData, isLoading: dashboardLoading } = useAdminDashboard();
-  const { data: courses, isLoading: coursesLoading } = useCourses();
-  const { data: users, isLoading: usersLoading } = useUsers();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: dashboardData, isLoading } = useAdminDashboard();
 
-  if (dashboardLoading || coursesLoading || usersLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading dashboard...</span>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const quickActions = [
+    {
+      title: "Add Student",
+      description: "Register a new student",
+      icon: UserPlus,
+      action: () => navigate("/admin/students"),
+      color: "bg-blue-500"
+    },
+    {
+      title: "Create Course",
+      description: "Set up a new course",
+      icon: BookPlus,
+      action: () => navigate("/admin/courses"),
+      color: "bg-green-500"
+    },
+    {
+      title: "View Reports",
+      description: "Generate analytics reports",
+      icon: TrendingUp,
+      action: () => navigate("/admin/reports"),
+      color: "bg-purple-500"
+    },
+    {
+      title: "Manage Departments",
+      description: "Organize academic departments",
+      icon: Building2,
+      action: () => navigate("/admin/departments"),
+      color: "bg-orange-500"
+    }
+  ];
 
-  // Calculate stats from real data
-  const totalStudents = users?.data?.filter(user => user.role === 'student').length || 0;
-  const totalTeachers = users?.data?.filter(user => user.role === 'teacher').length || 0;
-  const totalCourses = courses?.data?.length || 0;
+  const stats = [
+    {
+      title: "Total Students",
+      value: dashboardData?.data?.total_students || 0,
+      icon: Users,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100"
+    },
+    {
+      title: "Active Courses",
+      value: dashboardData?.data?.active_courses || 0,
+      icon: BookOpen,
+      color: "text-green-600",
+      bgColor: "bg-green-100"
+    },
+    {
+      title: "Faculty Members",
+      value: dashboardData?.data?.faculty_count || 0,
+      icon: GraduationCap,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100"
+    },
+    {
+      title: "Departments",
+      value: dashboardData?.data?.departments_count || 0,
+      icon: Building2,
+      color: "text-orange-600",
+      bgColor: "bg-orange-100"
+    }
+  ];
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="flex-1 space-y-6 p-6">
+        {/* Welcome Banner */}
+        <div className="bg-gradient-to-r from-primary to-primary/80 rounded-lg p-6 text-primary-foreground">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
+              {user?.name?.charAt(0) || 'A'}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">Welcome back, {user?.name || 'Admin'}!</h2>
+              <p className="text-primary-foreground/80">Administrator • Academic Portal Management</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={action.action}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center text-white`}>
+                      <action.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{action.title}</h4>
+                      <p className="text-sm text-muted-foreground">{action.description}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Students"
-            value={totalStudents.toString()}
-            icon={Users}
-            description="Active enrollments"
-            trend={{ value: "Live data", positive: true }}
-            colorClass="bg-primary"
-          />
-          <StatCard
-            title="Total Teachers"
-            value={totalTeachers.toString()}
-            icon={GraduationCap}
-            description="Faculty members"
-            trend={{ value: "Live data", positive: true }}
-            colorClass="bg-success"
-          />
-          <StatCard
-            title="Total Courses"
-            value={totalCourses.toString()}
-            icon={BookOpen}
-            description="Active courses"
-            trend={{ value: "Live data", positive: true }}
-            colorClass="bg-info"
-          />
-          <StatCard
-            title="Dashboard Stats"
-            value={dashboardData?.stats?.total_users ? dashboardData.stats.total_users.toString() : "N/A"}
-            icon={CreditCard}
-            description="Total system users"
-            trend={{ value: "Live data", positive: true }}
-            colorClass="bg-warning"
-          />
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Overview</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {stats.map((stat, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                      <p className="text-2xl font-bold">{isLoading ? '...' : stat.value}</p>
+                    </div>
+                    <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
-        {/* Charts Row */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Enrollment Overview */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                Enrollment Overview
-              </CardTitle>
-              <CardDescription>Student enrollment over the last 6 months</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={enrollmentData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }}
-                  />
-                  <Bar dataKey="students" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Fee Collection Status */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-primary" />
-                Fee Collection Status
-              </CardTitle>
-              <CardDescription>Current semester payment breakdown</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={feeCollectionData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {feeCollectionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tables Row */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Recent Enrollments */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Recent Enrollments
-              </CardTitle>
-              <CardDescription>Latest student registrations</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Program</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users?.data?.filter(user => user.role === 'student').slice(0, 4).map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{student.name}</div>
-                          <div className="text-xs text-muted-foreground">{student.email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">Computer Science</TableCell>
-                      <TableCell>
-                        <Badge variant="default">
-                          Active
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* Latest Payments */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-primary" />
-                Latest Payments
-              </CardTitle>
-              <CardDescription>Recent fee transactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentPayments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{payment.student}</div>
-                          <div className="text-xs text-muted-foreground">{payment.date}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-semibold">{payment.amount}</TableCell>
-                      <TableCell>
-                        <Badge variant={payment.status === "Completed" ? "default" : "secondary"}>
-                          {payment.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Recent Enrollments */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Recent Enrollments</CardTitle>
+                <CardDescription>Latest student course enrollments</CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => navigate("/admin/enrollments")}>
+                View All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Course</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    Recent enrollments will appear here once enrollment data is available
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

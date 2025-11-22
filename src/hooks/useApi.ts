@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, Course, User, LoginRequest, RegisterRequest, Enrollment, authStorage, ApiClientError, PaginatedResponse } from '@/lib/api';
+import { api, Course, User, LoginRequest, RegisterRequest, Enrollment, authStorage, ApiClientError, PaginatedResponse, PasswordResetRequestRequest, PasswordResetRequest } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 // Enhanced error handler for API calls
@@ -98,6 +98,32 @@ export const useLogout = () => {
       authStorage.removeToken();
       window.location.href = '/';
     }
+  });
+};
+
+export const usePasswordResetRequest = () => {
+  return useMutation({
+    mutationFn: (data: PasswordResetRequestRequest) => api.passwordResetRequest(data),
+    onSuccess: () => {
+      toast({
+        title: "Reset Link Sent",
+        description: "Please check your email for password reset instructions.",
+      });
+    },
+    onError: (error) => handleApiError(error, "Failed to Send Reset Link")
+  });
+};
+
+export const usePasswordReset = () => {
+  return useMutation({
+    mutationFn: (data: PasswordResetRequest) => api.passwordReset(data),
+    onSuccess: () => {
+      toast({
+        title: "Password Reset Successful",
+        description: "Your password has been updated. Please login with your new password.",
+      });
+    },
+    onError: (error) => handleApiError(error, "Password Reset Failed")
   });
 };
 

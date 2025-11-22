@@ -2,12 +2,15 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Calendar, TrendingUp, Bell, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BookOpen, Calendar, TrendingUp, Bell, Loader2, Clock, FileText, Award, Plus } from "lucide-react";
 import { useStudentCourses, useCurrentUser } from "@/hooks/useApi";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: currentUser } = useCurrentUser();
   const { data: enrollments, isLoading: enrollmentsLoading } = useStudentCourses();
 
@@ -34,11 +37,11 @@ const StudentDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-                {currentUser?.data?.name?.charAt(0) || 'S'}
+                {user?.name?.charAt(0) || 'S'}
               </div>
               <div>
-                <h2 className="text-2xl font-bold">Welcome back, {currentUser?.data?.name || 'Student'}!</h2>
-                <p className="text-primary-foreground/80">Student ID: STU{currentUser?.data?.id.toString().padStart(3, '0')} • Computer Science</p>
+                <h2 className="text-2xl font-bold">Welcome back, {user?.name || 'Student'}!</h2>
+                <p className="text-primary-foreground/80">Student ID: STU{user?.id?.toString().padStart(3, '0')} • Computer Science</p>
               </div>
             </div>
           </CardContent>
