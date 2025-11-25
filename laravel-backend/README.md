@@ -2,9 +2,16 @@
 
 A comprehensive Laravel backend API for the Academic Nexus Portal, providing complete academic management system functionality.
 
+## 📚 Documentation
+
+- **[Complete API Documentation](API_DOCUMENTATION.md)** - Detailed endpoint documentation with examples
+- **[Security Features](API_DOCUMENTATION.md#security-features)** - Authentication, rate limiting, and security measures
+- **[Testing Guide](API_DOCUMENTATION.md#testing)** - cURL and Postman examples
+
 ## 🚀 Features
 
-- **Multi-role Authentication** (Admin, Student, Teacher)
+- **Multi-role Authentication** (Admin, Student, Teacher) with JWT tokens
+- **Password Reset System** with secure token-based flow
 - **Student Management System**
 - **Course & Department Management**
 - **Attendance Tracking**

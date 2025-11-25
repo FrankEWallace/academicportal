@@ -18,28 +18,37 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:6|max:255',
             'role' => 'required|string|in:admin,student,teacher',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Please check your input and try again',
                 'errors' => $validator->errors()
             ], 422);
         }
 
+        // Rate limiting should be implemented here in production
+        
         $user = User::where('email', $request->email)
                    ->where('role', $request->role)
                    ->where('is_active', true)
                    ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            \Log::warning('Failed login attempt for email: ' . $request->email . ' with role: ' . $request->role);
+            
+            // Use consistent timing to prevent timing attacks
+            if (!$user) {
+                Hash::check('dummy-password', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'The provided credentials do not match our records'
             ], 401);
         }
 
@@ -151,16 +160,19 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|min:2|regex:/^[a-zA-Z\s]+$/',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
             'role' => 'required|string|in:student,teacher',
+        ], [
+            'name.regex' => 'Name can only contain letters and spaces.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Please correct the following errors',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -260,40 +272,46 @@ class AuthController extends Controller
     public function passwordResetRequest(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Please provide a valid email address',
                 'errors' => $validator->errors()
             ], 422);
         }
 
+        // Always return the same response to prevent email enumeration
         try {
-            // Generate reset token
-            $token = \App\Models\PasswordResetToken::createTokenForEmail($request->email);
+            $user = User::where('email', $request->email)->where('is_active', true)->first();
+            
+            if ($user) {
+                // Generate reset token only if user exists and is active
+                $token = \App\Models\PasswordResetToken::createTokenForEmail($request->email);
+                
+                // In a real application, send email here
+                \Log::info('Password reset requested for: ' . $request->email);
+            }
 
-            // Clean up expired tokens
+            // Clean up expired tokens periodically
             \App\Models\PasswordResetToken::cleanExpiredTokens();
 
-            // In a real application, you would send an email here
-            // For now, we'll just return the token for testing purposes
+            // Always return the same message to prevent email enumeration
             return response()->json([
                 'success' => true,
-                'message' => 'Password reset token generated successfully',
+                'message' => 'If an account with that email exists, a password reset link has been sent',
                 'data' => [
-                    'token' => $token, // Remove this in production
                     'expires_in' => '1 hour'
                 ]
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Password reset request failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to generate password reset token',
-                'error' => $e->getMessage()
+                'message' => 'Unable to process password reset request at this time'
             ], 500);
         }
     }
@@ -304,60 +322,74 @@ class AuthController extends Controller
     public function passwordReset(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-            'token' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+            'email' => 'required|email',
+            'token' => 'required|string|size:64', // Ensure exact token length
+            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+        ], [
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Validation failed',
                 'errors' => $validator->errors()
             ], 422);
         }
 
         try {
-            // Verify the token
+            // Verify the token first
             if (!\App\Models\PasswordResetToken::isValidToken($request->email, $request->token)) {
+                \Log::warning('Invalid password reset attempt for email: ' . $request->email);
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid or expired reset token'
                 ], 400);
             }
 
-            // Find the user
-            $user = User::where('email', $request->email)->first();
-
+            // Find the user and ensure they're active
+            $user = User::where('email', $request->email)->where('is_active', true)->first();
+            
             if (!$user) {
+                \Log::warning('Password reset attempted for inactive user: ' . $request->email);
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not found'
+                    'message' => 'User account not found or inactive'
                 ], 404);
+            }
+
+            // Check if new password is different from current password
+            if (Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'New password must be different from current password'
+                ], 400);
             }
 
             // Update the password
             $user->password = Hash::make($request->password);
             $user->save();
 
-            // Delete the used token
+            // Delete the used token immediately
             \App\Models\PasswordResetToken::where('email', $request->email)
                 ->where('token', $request->token)
                 ->delete();
 
-            // Revoke all existing tokens for security
+            // Revoke all existing authentication tokens for security
             $user->tokens()->delete();
+
+            \Log::info('Password reset successful for user: ' . $request->email);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password reset successfully'
+                'message' => 'Password has been reset successfully. Please log in with your new password.'
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Password reset failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to reset password',
-                'error' => $e->getMessage()
+                'message' => 'Unable to reset password at this time'
             ], 500);
         }
     }

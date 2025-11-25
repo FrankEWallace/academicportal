@@ -46,12 +46,18 @@ class PasswordResetToken extends Model
      */
     public static function isValidToken(string $email, string $token): bool
     {
+        // Use hash_equals for constant-time comparison to prevent timing attacks
         $resetToken = self::where('email', $email)
-            ->where('token', $token)
             ->valid()
-            ->first();
+            ->get();
 
-        return $resetToken !== null;
+        foreach ($resetToken as $tokenRecord) {
+            if (hash_equals($tokenRecord->token, $token)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -59,17 +65,26 @@ class PasswordResetToken extends Model
      */
     public static function createTokenForEmail(string $email): string
     {
+        // Rate limiting - check if too many tokens requested recently
+        $recentTokens = self::where('email', $email)
+            ->where('created_at', '>', Carbon::now()->subMinutes(5))
+            ->count();
+
+        if ($recentTokens >= 3) {
+            throw new \Exception('Too many password reset requests. Please wait before trying again.');
+        }
+
         // Delete any existing tokens for this email
         self::where('email', $email)->delete();
 
-        // Generate a new token
+        // Generate a new secure token
         $token = self::generateToken();
 
-        // Store the new token
+        // Store the new token with shorter expiration for security
         self::create([
             'email' => $email,
             'token' => $token,
-            'expires_at' => Carbon::now()->addHours(1), // Token expires in 1 hour
+            'expires_at' => Carbon::now()->addMinutes(30), // Token expires in 30 minutes
         ]);
 
         return $token;

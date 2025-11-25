@@ -24,8 +24,8 @@ class AuthTest extends TestCase
         $payload = [
             'name' => 'John Doe',
             'email' => 'john.doe@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'SecurePass123!',
+            'password_confirmation' => 'SecurePass123!',
             'role' => 'student',
         ];
 
@@ -54,8 +54,8 @@ class AuthTest extends TestCase
         $payload = [
             'name' => 'Jane Smith',
             'email' => 'jane.smith@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'SecurePass123!',
+            'password_confirmation' => 'SecurePass123!',
             'role' => 'teacher',
         ];
 
@@ -90,14 +90,14 @@ class AuthTest extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => bcrypt('password123'),
+            'password' => bcrypt('SecurePass123!'),
             'role' => 'student',
             'is_active' => true
         ]);
 
         $payload = [
             'email' => 'test@example.com',
-            'password' => 'password123',
+            'password' => 'SecurePass123!',
             'role' => 'student'
         ];
 
@@ -134,7 +134,7 @@ class AuthTest extends TestCase
         $response->assertStatus(401)
                 ->assertJson([
                     'success' => false,
-                    'message' => 'Invalid credentials'
+                    'message' => 'The provided credentials do not match our records'
                 ]);
     }
 
@@ -142,13 +142,13 @@ class AuthTest extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => bcrypt('password123'),
+            'password' => bcrypt('SecurePass123!'),
             'role' => 'student'
         ]);
 
         $payload = [
             'email' => 'test@example.com',
-            'password' => 'password123',
+            'password' => 'SecurePass123!',
             'role' => 'admin' // Wrong role
         ];
 
@@ -161,14 +161,14 @@ class AuthTest extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => bcrypt('password123'),
+            'password' => bcrypt('SecurePass123!'),
             'role' => 'student',
             'is_active' => false
         ]);
 
         $payload = [
             'email' => 'test@example.com',
-            'password' => 'password123',
+            'password' => 'SecurePass123!',
             'role' => 'student'
         ];
 
