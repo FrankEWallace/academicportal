@@ -18,6 +18,15 @@ use App\Http\Controllers\Api\TeacherController;
 |
 */
 
+// API Information Route
+Route::get('/', function () {
+    return response()->json([
+        'message' => 'Academic Nexus Portal API',
+        'version' => '1.0.0',
+        'documentation' => '/api/documentation'
+    ]);
+});
+
 // Authentication Routes
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
