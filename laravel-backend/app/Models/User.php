@@ -30,6 +30,13 @@ class User extends Authenticatable
         'profile_image',
         'is_active',
         'email_verified_at',
+        'program',
+        'year_level',
+        'student_status',
+        'enrollment_date',
+        'current_cgpa',
+        'bio',
+        'social_links',
     ];
 
     /**
@@ -50,8 +57,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'date_of_birth' => 'date',
+        'enrollment_date' => 'date',
         'is_active' => 'boolean',
         'password' => 'hashed',
+        'current_cgpa' => 'decimal:2',
+        'social_links' => 'array',
     ];
 
     /**

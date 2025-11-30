@@ -80,7 +80,8 @@ class PermissionMiddleware
                 'courses.read', 'enrollments.create',
                 'attendance.read', 'grades.read', 'fees.read',
                 'announcements.read',
-                'dashboard.student'
+                'dashboard.student',
+                'profile.read', 'profile.update'
             ]
         ];
 

@@ -16,6 +16,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import CourseDetail from "./pages/CourseDetail";
 import StudentDetail from "./pages/StudentDetail";
+import StudentProfile from "./pages/StudentProfile";
 import CoursesManagement from "./pages/CoursesManagement";
 import StudentsManagement from "./pages/StudentsManagement";
 import TeachersManagement from "./pages/TeachersManagement";
@@ -124,6 +125,11 @@ const App = () => (
                   <StudentDashboard />
                 </ProtectedRoute>
               } />
+              <Route path="/student/profile" element={
+                <ProtectedRoute requiredRole="student">
+                  <StudentProfile />
+                </ProtectedRoute>
+              } />
               
               {/* Protected Teacher Routes */}
               <Route path="/teacher" element={
@@ -139,8 +145,8 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/students/:id" element={
-                <ProtectedRoute allowedRoles={['admin', 'teacher']}>
-                  <StudentDetail />
+                <ProtectedRoute allowedRoles={['admin', 'teacher', 'student']}>
+                  <StudentProfile />
                 </ProtectedRoute>
               } />
               

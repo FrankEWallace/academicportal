@@ -79,6 +79,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Students Management - Admin only
         Route::get('/students', [AdminController::class, 'students'])->middleware('permission:students.read');
         Route::post('/students', [AdminController::class, 'storeStudent'])->middleware('permission:students.create');
+        Route::get('/students/{id}', [StudentController::class, 'show'])->middleware('permission:students.read');
+        Route::put('/students/{id}', [StudentController::class, 'update'])->middleware('permission:students.update');
         
         // Teachers Management - Admin only
         Route::get('/teachers', [AdminController::class, 'teachers'])->middleware('permission:teachers.read');
@@ -111,6 +113,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/attendance', [StudentController::class, 'attendance'])->middleware('permission:attendance.read');
         Route::get('/fees', [StudentController::class, 'fees'])->middleware('permission:fees.read');
         Route::get('/announcements', [StudentController::class, 'announcements'])->middleware('permission:announcements.read');
+        Route::get('/profile', function(Request $request) {
+            return app(StudentController::class)->show($request, $request->user()->student->id);
+        })->middleware('permission:profile.read');
+        Route::put('/profile', function(Request $request) {
+            return app(StudentController::class)->update($request, $request->user()->student->id);
+        })->middleware('permission:profile.update');
     });
     
     // Teacher Routes - Only teachers can access
@@ -161,6 +169,11 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::middleware('permission:students.read')->group(function () {
         Route::get('/students/{id}/courses', [AdminController::class, 'getStudentCourses']);
+        Route::get('/students/{id}', [StudentController::class, 'show']);
+    });
+    
+    Route::middleware('permission:students.update')->group(function () {
+        Route::put('/students/{id}', [StudentController::class, 'update']);
     });
 });
 
