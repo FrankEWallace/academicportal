@@ -275,6 +275,283 @@ class StudentController extends Controller
     }
 
     /**
+     * Get student GPA and grade summary
+     */
+    public function getGPA(Request $request, $id): JsonResponse
+    {
+        $student = Student::findOrFail($id);
+
+        // Check authorization - students can only view their own GPA
+        $user = $request->user();
+        if ($user->role === 'student') {
+            if (!$user->student || $user->student->id != $id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only view your own GPA'
+                ], 403);
+            }
+        }
+
+        // Get course grades (from Grade model - course assessments)
+        $courseGrades = Grade::where('student_id', $id)
+            ->with(['course'])
+            ->get()
+            ->groupBy('course_id');
+
+        // Get assignment grades (from AssignmentGrade model)
+        $assignmentGrades = \App\Models\AssignmentGrade::where('student_id', $id)
+            ->with(['assignment.course'])
+            ->get();
+
+        // Calculate GPA from course grades
+        $gpaCalculation = $this->calculateGPA($courseGrades);
+        
+        // Calculate assignment statistics
+        $assignmentStats = $this->calculateAssignmentStatistics($assignmentGrades);
+
+        // Get semester-wise performance
+        $semesterPerformance = $this->getSemesterPerformance($courseGrades, $student);
+
+        // Get recent performance trend
+        $recentTrend = $this->getRecentPerformanceTrend($courseGrades, $assignmentGrades);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->user->name,
+                    'student_id' => $student->student_id,
+                    'department' => $student->department->name ?? 'N/A',
+                    'semester' => $student->semester,
+                ],
+                'gpa' => [
+                    'current_gpa' => $gpaCalculation['gpa'],
+                    'total_credits' => $gpaCalculation['total_credits'],
+                    'total_grade_points' => $gpaCalculation['total_grade_points'],
+                    'courses_completed' => $gpaCalculation['courses_completed'],
+                ],
+                'assignment_performance' => $assignmentStats,
+                'semester_performance' => $semesterPerformance,
+                'recent_trend' => $recentTrend,
+                'grade_distribution' => $this->getGradeDistribution($courseGrades, $assignmentGrades),
+            ]
+        ]);
+    }
+
+    /**
+     * Calculate GPA from course grades
+     */
+    private function calculateGPA($courseGrades): array
+    {
+        $totalGradePoints = 0;
+        $totalCredits = 0;
+        $coursesCompleted = 0;
+
+        foreach ($courseGrades as $courseId => $grades) {
+            $course = $grades->first()->course;
+            if (!$course) continue;
+
+            // Get the latest/best grade for the course
+            $bestGrade = $grades->sortByDesc('grade_point')->first();
+            
+            if ($bestGrade && $bestGrade->grade_point > 0) {
+                $credits = $course->credits ?? 3; // Default to 3 credits if not specified
+                $totalGradePoints += $bestGrade->grade_point * $credits;
+                $totalCredits += $credits;
+                $coursesCompleted++;
+            }
+        }
+
+        $gpa = $totalCredits > 0 ? round($totalGradePoints / $totalCredits, 2) : 0;
+
+        return [
+            'gpa' => $gpa,
+            'total_credits' => $totalCredits,
+            'total_grade_points' => round($totalGradePoints, 2),
+            'courses_completed' => $coursesCompleted,
+        ];
+    }
+
+    /**
+     * Calculate assignment performance statistics
+     */
+    private function calculateAssignmentStatistics($assignmentGrades): array
+    {
+        if ($assignmentGrades->isEmpty()) {
+            return [
+                'total_assignments' => 0,
+                'average_score' => 0,
+                'average_percentage' => 0,
+                'highest_score' => 0,
+                'lowest_score' => 0,
+            ];
+        }
+
+        $totalAssignments = $assignmentGrades->count();
+        $averageScore = $assignmentGrades->avg('score');
+        $averagePercentage = $assignmentGrades->avg(function ($grade) {
+            return $grade->percentage;
+        });
+
+        return [
+            'total_assignments' => $totalAssignments,
+            'average_score' => round($averageScore, 2),
+            'average_percentage' => round($averagePercentage, 2),
+            'highest_score' => $assignmentGrades->max('score'),
+            'lowest_score' => $assignmentGrades->min('score'),
+        ];
+    }
+
+    /**
+     * Get semester-wise performance
+     */
+    private function getSemesterPerformance($courseGrades, $student): array
+    {
+        $performance = [];
+        
+        // Group courses by semester (this is a simplified approach)
+        foreach ($courseGrades as $courseId => $grades) {
+            $course = $grades->first()->course;
+            $semester = $course->semester ?? $student->semester;
+            
+            if (!isset($performance[$semester])) {
+                $performance[$semester] = [
+                    'semester' => $semester,
+                    'courses' => 0,
+                    'total_grade_points' => 0,
+                    'total_credits' => 0,
+                    'gpa' => 0,
+                ];
+            }
+
+            $bestGrade = $grades->sortByDesc('grade_point')->first();
+            if ($bestGrade && $bestGrade->grade_point > 0) {
+                $credits = $course->credits ?? 3;
+                $performance[$semester]['courses']++;
+                $performance[$semester]['total_grade_points'] += $bestGrade->grade_point * $credits;
+                $performance[$semester]['total_credits'] += $credits;
+            }
+        }
+
+        // Calculate GPA for each semester
+        foreach ($performance as &$semesterData) {
+            if ($semesterData['total_credits'] > 0) {
+                $semesterData['gpa'] = round(
+                    $semesterData['total_grade_points'] / $semesterData['total_credits'], 
+                    2
+                );
+            }
+        }
+
+        return array_values($performance);
+    }
+
+    /**
+     * Get recent performance trend
+     */
+    private function getRecentPerformanceTrend($courseGrades, $assignmentGrades): array
+    {
+        // Get recent course grades (last 6 months)
+        $recentCourseGrades = collect();
+        foreach ($courseGrades as $grades) {
+            $recentGrades = $grades->where('assessment_date', '>=', now()->subMonths(6));
+            $recentCourseGrades = $recentCourseGrades->merge($recentGrades);
+        }
+
+        // Get recent assignment grades
+        $recentAssignmentGrades = $assignmentGrades->where('graded_at', '>=', now()->subMonths(6));
+
+        // Calculate trend
+        $courseAvg = $recentCourseGrades->isNotEmpty() ? $recentCourseGrades->avg('grade_point') : 0;
+        $assignmentAvg = $recentAssignmentGrades->isNotEmpty() ? $recentAssignmentGrades->avg(function($grade) {
+            return $grade->percentage / 25; // Convert percentage to 4.0 scale approximation
+        }) : 0;
+
+        return [
+            'recent_course_average' => round($courseAvg, 2),
+            'recent_assignment_average' => round($assignmentAvg, 2),
+            'trend_direction' => $this->calculateTrendDirection($recentCourseGrades, $recentAssignmentGrades),
+        ];
+    }
+
+    /**
+     * Calculate trend direction
+     */
+    private function calculateTrendDirection($courseGrades, $assignmentGrades): string
+    {
+        if ($courseGrades->isEmpty() && $assignmentGrades->isEmpty()) {
+            return 'stable';
+        }
+
+        // Simple trend calculation based on chronological order
+        $allGrades = collect();
+        
+        foreach ($courseGrades as $grade) {
+            $allGrades->push([
+                'date' => $grade->assessment_date,
+                'performance' => $grade->grade_point,
+            ]);
+        }
+
+        foreach ($assignmentGrades as $grade) {
+            $allGrades->push([
+                'date' => $grade->graded_at,
+                'performance' => $grade->percentage / 25, // Normalize to 4.0 scale
+            ]);
+        }
+
+        $chronological = $allGrades->sortBy('date');
+        
+        if ($chronological->count() < 2) {
+            return 'stable';
+        }
+
+        $firstHalf = $chronological->take($chronological->count() / 2);
+        $secondHalf = $chronological->skip($chronological->count() / 2);
+
+        $firstAvg = $firstHalf->avg('performance');
+        $secondAvg = $secondHalf->avg('performance');
+
+        $difference = $secondAvg - $firstAvg;
+
+        if ($difference > 0.1) return 'improving';
+        if ($difference < -0.1) return 'declining';
+        return 'stable';
+    }
+
+    /**
+     * Get grade distribution
+     */
+    private function getGradeDistribution($courseGrades, $assignmentGrades): array
+    {
+        $distribution = [
+            'A+' => 0, 'A' => 0, 'A-' => 0,
+            'B+' => 0, 'B' => 0, 'B-' => 0,
+            'C+' => 0, 'C' => 0, 'C-' => 0,
+            'D' => 0, 'F' => 0
+        ];
+
+        // Count course grades
+        foreach ($courseGrades as $grades) {
+            $bestGrade = $grades->sortByDesc('grade_point')->first();
+            if ($bestGrade && $bestGrade->grade_letter) {
+                $distribution[$bestGrade->grade_letter]++;
+            }
+        }
+
+        // Count assignment grades
+        foreach ($assignmentGrades as $grade) {
+            $letterGrade = $grade->letter_grade;
+            if (isset($distribution[$letterGrade])) {
+                $distribution[$letterGrade]++;
+            }
+        }
+
+        return $distribution;
+    }
+
+    /**
      * Update student profile
      */
     public function update(Request $request, $id): JsonResponse

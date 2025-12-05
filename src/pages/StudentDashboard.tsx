@@ -4,22 +4,26 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Calendar, TrendingUp, Bell, Loader2, Clock, FileText, Award, Plus } from "lucide-react";
-import { useStudentCourses, useCurrentUser } from "@/hooks/useApi";
+import { useStudentCourses, useCurrentUser, useStudentGPA } from "@/hooks/useApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { AttendanceCard } from "@/components/AttendanceCard";
+import { useStudentAttendance } from "@/hooks/use-student-attendance";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: currentUser } = useCurrentUser();
   const { data: enrollments, isLoading: enrollmentsLoading } = useStudentCourses();
+  const { data: gpaData, isLoading: gpaLoading } = useStudentGPA();
+  const { data: attendanceData } = useStudentAttendance(currentUser?.data?.user?.id);
 
   const activeEnrollments = enrollments?.filter(e => e.status === 'enrolled') || [];
   const totalCredits = activeEnrollments.reduce((total, enrollment) => {
     return total + (enrollment.course?.credits || 0);
   }, 0);
 
-  if (enrollmentsLoading) {
+  if (enrollmentsLoading || gpaLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
@@ -57,8 +61,12 @@ const StudentDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">3.85</div>
-              <p className="text-xs text-muted-foreground mt-1">Excellent performance</p>
+              <div className="text-3xl font-bold">
+                {gpaData?.gpa?.current_gpa || '0.00'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {gpaData?.gpa?.courses_completed} courses completed • {gpaData?.gpa?.total_credits} credits
+              </p>
             </CardContent>
           </Card>
 
@@ -83,8 +91,14 @@ const StudentDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">92%</div>
-              <p className="text-xs text-muted-foreground mt-1">Great attendance</p>
+              <div className="text-3xl font-bold">
+                {attendanceData?.overall_statistics?.attendance_percentage?.toFixed(1) || '0.0'}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {(attendanceData?.overall_statistics?.attendance_percentage || 0) >= 90 ? 'Excellent attendance' :
+                 (attendanceData?.overall_statistics?.attendance_percentage || 0) >= 75 ? 'Good attendance' : 
+                 'Needs improvement'}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -189,6 +203,154 @@ const StudentDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* GPA and Grade Summary */}
+        {gpaData && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Assignment Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  Assignment Performance
+                </CardTitle>
+                <CardDescription>Your assignment grades and statistics</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Total Assignments</span>
+                    <div className="text-lg font-bold">{gpaData.assignment_performance.total_assignments}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Average Score</span>
+                    <div className="text-lg font-bold">{gpaData.assignment_performance.average_score}%</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Highest Score</span>
+                    <div className="text-lg font-bold">{gpaData.assignment_performance.highest_score}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Lowest Score</span>
+                    <div className="text-lg font-bold">{gpaData.assignment_performance.lowest_score}</div>
+                  </div>
+                </div>
+                {gpaData.assignment_performance.average_percentage > 0 && (
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Overall Performance</span>
+                      <span>{gpaData.assignment_performance.average_percentage}%</span>
+                    </div>
+                    <Progress value={gpaData.assignment_performance.average_percentage} className="h-2" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Grade Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Grade Distribution
+                </CardTitle>
+                <CardDescription>Distribution of your grades</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(gpaData.grade_distribution)
+                    .filter(([_, count]) => count > 0)
+                    .sort(([a], [b]) => {
+                      // Sort grades in order: A+, A, A-, B+, B, etc.
+                      const gradeOrder = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F'];
+                      return gradeOrder.indexOf(a) - gradeOrder.indexOf(b);
+                    })
+                    .map(([grade, count]) => (
+                      <div key={grade} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={grade.startsWith('A') ? 'default' : 
+                                   grade.startsWith('B') ? 'secondary' : 
+                                   grade.startsWith('C') ? 'outline' : 'destructive'}
+                          >
+                            {grade}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {count} grade{count !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <span className="font-medium">{count}</span>
+                      </div>
+                    ))}
+                  {Object.values(gpaData.grade_distribution).every(count => count === 0) && (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>No grades yet</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Performance Trend */}
+            {gpaData.recent_trend && (
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    Recent Performance Trend
+                  </CardTitle>
+                  <CardDescription>Your academic performance over the past 6 months</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold mb-1">
+                        {gpaData.recent_trend.recent_course_average.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Course Average</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold mb-1">
+                        {gpaData.recent_trend.recent_assignment_average.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Assignment Average</div>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="flex items-center justify-center gap-2 text-2xl font-bold mb-1">
+                        {gpaData.recent_trend.trend_direction === 'improving' && (
+                          <>
+                            <TrendingUp className="w-6 h-6 text-green-500" />
+                            <span className="text-green-500">↗</span>
+                          </>
+                        )}
+                        {gpaData.recent_trend.trend_direction === 'declining' && (
+                          <>
+                            <TrendingUp className="w-6 h-6 text-red-500 rotate-180" />
+                            <span className="text-red-500">↘</span>
+                          </>
+                        )}
+                        {gpaData.recent_trend.trend_direction === 'stable' && (
+                          <>
+                            <span className="text-blue-500">→</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground capitalize">
+                        {gpaData.recent_trend.trend_direction}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Attendance Section */}
+        {currentUser?.data?.user?.id && (
+          <AttendanceCard studentId={currentUser.data.user.id} />
+        )}
       </div>
     </DashboardLayout>
   );

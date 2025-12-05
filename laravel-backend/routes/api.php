@@ -6,6 +6,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\AssignmentController;
+use App\Http\Controllers\Api\AssignmentGradeController;
+use App\Http\Controllers\Api\AttendanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -103,6 +106,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // Announcements Management - Admin has full access
         Route::get('/announcements', [AdminController::class, 'announcements'])->middleware('permission:announcements.read');
         Route::post('/announcements', [AdminController::class, 'storeAnnouncement'])->middleware('permission:announcements.create');
+        
+        // Assignments Management - Admin has full access
+        Route::get('/assignments', [AssignmentController::class, 'index'])->middleware('permission:assignments.read');
+        Route::post('/assignments', [AssignmentController::class, 'store'])->middleware('permission:assignments.create');
+        Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->middleware('permission:assignments.read');
+        Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->middleware('permission:assignments.update');
+        Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->middleware('permission:assignments.delete');
     });
     
     // Student Routes - Only students can access
@@ -119,6 +129,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/profile', function(Request $request) {
             return app(StudentController::class)->update($request, $request->user()->student->id);
         })->middleware('permission:profile.update');
+        Route::get('/gpa', function(Request $request) {
+            return app(StudentController::class)->getGPA($request, $request->user()->student->id);
+        })->middleware('permission:grades.read');
     });
     
     // Teacher Routes - Only teachers can access
@@ -130,6 +143,33 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/grades', [TeacherController::class, 'submitGrades'])->middleware('permission:grades.create');
         Route::get('/students', [TeacherController::class, 'getStudents'])->middleware('permission:students.read');
     });
+    
+    // Assignment Grade Routes
+    Route::prefix('assignment-grades')->group(function () {
+        // Create/update grade - Teachers and Admins only
+        Route::post('/', [AssignmentGradeController::class, 'store'])->middleware('permission:grades.create');
+        
+        // Get grades for specific assignment - Teachers and Admins only
+        Route::get('/assignment/{assignmentId}', [AssignmentGradeController::class, 'getAssignmentGrades'])->middleware('permission:grades.read');
+    });
+    
+    // Student assignment grades - Students can view their own, teachers/admins can view any
+    Route::get('/students/{studentId}/assignment-grades', [AssignmentGradeController::class, 'getStudentGrades'])->middleware('permission:grades.read');
+    
+    // Student GPA - Students can view their own, teachers/admins can view any
+    Route::get('/students/{studentId}/gpa', [StudentController::class, 'getGPA'])->middleware('permission:grades.read');
+    
+    // Attendance Routes
+    Route::prefix('attendance')->group(function () {
+        // Create/update attendance - Teachers and Admins only
+        Route::post('/', [AttendanceController::class, 'store'])->middleware('permission:attendance.create');
+        
+        // Get course attendance - Teachers and Admins only
+        Route::get('/course/{courseId}', [AttendanceController::class, 'getCourseAttendance'])->middleware('permission:attendance.read');
+    });
+    
+    // Student attendance - Students can view their own, teachers/admins can view any
+    Route::get('/students/{studentId}/attendance', [AttendanceController::class, 'getStudentAttendance'])->middleware('permission:attendance.read');
     
     // Enrollment Routes - Students can enroll themselves, admins can manage all enrollments
     Route::prefix('enrollments')->group(function () {
@@ -174,6 +214,12 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::middleware('permission:students.update')->group(function () {
         Route::put('/students/{id}', [StudentController::class, 'update']);
+    });
+    
+    // Assignment Routes - Accessible based on permissions
+    Route::middleware('permission:assignments.read')->group(function () {
+        Route::get('/courses/{course}/assignments', [AssignmentController::class, 'byCourse']);
+        Route::get('/assignments/upcoming', [AssignmentController::class, 'upcoming']);
     });
 });
 

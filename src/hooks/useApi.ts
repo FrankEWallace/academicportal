@@ -336,3 +336,16 @@ export const useTeacherDashboard = () => {
     enabled: !!authStorage.getToken(),
   });
 };
+
+// GPA Hook
+export const useStudentGPA = () => {
+  return useQuery({
+    queryKey: ['studentGPA'],
+    queryFn: async () => {
+      const response = await api.getStudentGPA();
+      return response.data;
+    },
+    enabled: !!authStorage.getToken(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};

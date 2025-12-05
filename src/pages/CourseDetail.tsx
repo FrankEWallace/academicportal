@@ -37,14 +37,16 @@ import {
   UserPlus,
   UserMinus,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  CheckCircle
 } from "lucide-react";
 import { 
   useCourse, 
   useCourseEnrollments, 
   useUsers, 
   useEnrollStudent, 
-  useUnenrollStudent 
+  useUnenrollStudent,
+  useCurrentUser
 } from "@/hooks/useApi";
 import { useNavigate } from "react-router-dom";
 
@@ -56,8 +58,13 @@ const CourseDetail = () => {
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
   const { data: enrollments, isLoading: enrollmentsLoading } = useCourseEnrollments(courseId);
   const { data: usersResponse } = useUsers();
+  const { data: currentUser } = useCurrentUser();
   const enrollStudentMutation = useEnrollStudent();
   const unenrollStudentMutation = useUnenrollStudent();
+  
+  // Check if user is teacher or admin
+  const isTeacherOrAdmin = currentUser?.data?.user?.role === 'admin' || 
+    (currentUser?.data?.user?.role === 'teacher' && course?.teacher_id === currentUser.data.user.id);
 
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
@@ -127,9 +134,20 @@ const CourseDetail = () => {
               <p className="text-muted-foreground">{course.code}</p>
             </div>
           </div>
-          <Badge variant="outline" className="text-lg px-4 py-2">
-            {course.credits} Credits
-          </Badge>
+          <div className="flex items-center gap-3">
+            {isTeacherOrAdmin && (
+              <Button 
+                onClick={() => navigate(`/courses/${courseId}/attendance`)}
+                className="flex items-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Mark Attendance
+              </Button>
+            )}
+            <Badge variant="outline" className="text-lg px-4 py-2">
+              {course.credits} Credits
+            </Badge>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">

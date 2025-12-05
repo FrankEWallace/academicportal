@@ -67,6 +67,7 @@ class PermissionMiddleware
                 'grades.create', 'grades.read', 'grades.update', 'grades.delete',
                 'fees.create', 'fees.read', 'fees.update', 'fees.delete',
                 'announcements.create', 'announcements.read', 'announcements.update', 'announcements.delete',
+                'assignments.create', 'assignments.read', 'assignments.update', 'assignments.delete',
                 'dashboard.admin'
             ],
             'teacher' => [
@@ -74,12 +75,13 @@ class PermissionMiddleware
                 'attendance.create', 'attendance.read', 'attendance.update',
                 'grades.create', 'grades.read', 'grades.update',
                 'announcements.read',
+                'assignments.create', 'assignments.read', 'assignments.update', 'assignments.delete',
                 'dashboard.teacher'
             ],
             'student' => [
                 'courses.read', 'enrollments.create',
                 'attendance.read', 'grades.read', 'fees.read',
-                'announcements.read',
+                'announcements.read', 'assignments.read',
                 'dashboard.student',
                 'profile.read', 'profile.update'
             ]

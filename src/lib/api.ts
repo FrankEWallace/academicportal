@@ -130,6 +130,42 @@ export interface Enrollment {
   course?: Course;
 }
 
+export interface GPAData {
+  student: {
+    id: number;
+    name: string;
+    student_id: string;
+    department: string;
+    semester: number;
+  };
+  gpa: {
+    current_gpa: number;
+    total_credits: number;
+    total_grade_points: number;
+    courses_completed: number;
+  };
+  assignment_performance: {
+    total_assignments: number;
+    average_score: number;
+    average_percentage: number;
+    highest_score: number;
+    lowest_score: number;
+  };
+  semester_performance: Array<{
+    semester: number;
+    courses: number;
+    total_grade_points: number;
+    total_credits: number;
+    gpa: number;
+  }>;
+  recent_trend: {
+    recent_course_average: number;
+    recent_assignment_average: number;
+    trend_direction: 'improving' | 'declining' | 'stable';
+  };
+  grade_distribution: Record<string, number>;
+}
+
 // Storage for auth token with event emitting
 const TOKEN_KEY = 'academic_portal_token';
 
@@ -378,6 +414,10 @@ class ApiClient {
 
   async getTeacherDashboard(): Promise<ApiResponse<any>> {
     return this.request<ApiResponse<any>>('/teacher/dashboard');
+  }
+
+  async getStudentGPA(): Promise<ApiResponse<GPAData>> {
+    return this.request<ApiResponse<GPAData>>('/student/gpa');
   }
 
   // Health Check

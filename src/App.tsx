@@ -17,6 +17,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import CourseDetail from "./pages/CourseDetail";
 import StudentDetail from "./pages/StudentDetail";
 import StudentProfile from "./pages/StudentProfile";
+import AttendanceList from "./pages/AttendanceList";
 import CoursesManagement from "./pages/CoursesManagement";
 import StudentsManagement from "./pages/StudentsManagement";
 import TeachersManagement from "./pages/TeachersManagement";
@@ -135,6 +136,13 @@ const App = () => (
               <Route path="/teacher" element={
                 <ProtectedRoute requiredRole="teacher">
                   <TeacherDashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Attendance Routes */}
+              <Route path="/courses/:courseId/attendance" element={
+                <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                  <AttendanceList />
                 </ProtectedRoute>
               } />
               

@@ -77,6 +77,14 @@ class Student extends Model
     }
 
     /**
+     * Get the assignment grades for the student.
+     */
+    public function assignmentGrades()
+    {
+        return $this->hasMany(AssignmentGrade::class);
+    }
+
+    /**
      * Get the fee records for the student.
      */
     public function fees()
