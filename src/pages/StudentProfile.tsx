@@ -687,109 +687,14 @@ const StudentProfilePage: React.FC = () => {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600">
                       {student.statistics.average_grade?.toFixed(2) || '0.00'}
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Contact Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contact Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {isEditing ? (
-                    <>
-                      <div>
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                          id="phone"
-                          value={formData.phone || ''}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          placeholder="Enter phone number"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="address">Address</Label>
-                        <Textarea
-                          id="address"
-                          value={formData.address || ''}
-                          onChange={(e) => setFormData({...formData, address: e.target.value})}
-                          placeholder="Enter address"
-                          rows={3}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {student.user.phone && (
-                        <div className="flex items-center gap-3">
-                          <Phone className="w-4 h-4 text-muted-foreground" />
-                          <span>{student.user.phone}</span>
-                        </div>
-                      )}
-                      {student.user.address && (
-                        <div className="flex items-start gap-3">
-                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                          <span className="text-sm">{student.user.address}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Academic Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Academic Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="program">Program</Label>
-                        <Input
-                          id="program"
-                          value={formData.program || ''}
-                          onChange={(e) => setFormData({...formData, program: e.target.value})}
-                          placeholder="e.g., Bachelor of Computer Science"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="year_level">Year Level</Label>
-                        <Select 
-                          value={formData.year_level || ''} 
-                          onValueChange={(value) => setFormData({...formData, year_level: value})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select year level" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1st year">1st Year</SelectItem>
-                            <SelectItem value="2nd year">2nd Year</SelectItem>
-                            <SelectItem value="3rd year">3rd Year</SelectItem>
-                            <SelectItem value="4th year">4th Year</SelectItem>
-                            <SelectItem value="Graduate">Graduate</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {student.user.program && (
-                        <div>
-                          <span className="font-medium text-muted-foreground">Program:</span>
-                          <p className="text-sm">{student.user.program}</p>
-                        </div>
-                      )}
-                      {student.user.year_level && (
-                        <div>
-                          <span className="font-medium text-muted-foreground">Year Level:</span>
-                          <p className="text-sm">{student.user.year_level}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    <div className="text-sm text-gray-500">Avg Grade</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
           </TabsContent>
         </Tabs>
       </div>

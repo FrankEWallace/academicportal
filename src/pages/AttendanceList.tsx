@@ -70,6 +70,49 @@ export default function AttendanceList() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Bulk operations for better UX
+  const markAllPresent = () => {
+    const newRecords: Record<number, AttendanceRecord> = {};
+    enrollments.forEach((enrollment) => {
+      newRecords[enrollment.student.id] = {
+        student_id: enrollment.student.id,
+        status: 'present',
+        notes: '',
+      };
+    });
+    setAttendanceRecords(newRecords);
+    
+    toast({
+      title: "All Students Marked Present",
+      description: `${enrollments.length} students marked as present`,
+    });
+  };
+
+  const markAllAbsent = () => {
+    const newRecords: Record<number, AttendanceRecord> = {};
+    enrollments.forEach((enrollment) => {
+      newRecords[enrollment.student.id] = {
+        student_id: enrollment.student.id,
+        status: 'absent',
+        notes: '',
+      };
+    });
+    setAttendanceRecords(newRecords);
+    
+    toast({
+      title: "All Students Marked Absent",
+      description: `${enrollments.length} students marked as absent`,
+    });
+  };
+
+  const clearAllAttendance = () => {
+    setAttendanceRecords({});
+    toast({
+      title: "Attendance Cleared",
+      description: "All attendance records have been cleared",
+    });
+  };
+
   // Fetch course details and enrolled students
   useEffect(() => {
     if (!courseId) return;
@@ -186,46 +229,89 @@ export default function AttendanceList() {
   const saveAttendance = async () => {
     if (!courseId) return;
 
+    // Validate that we have at least one attendance record to save
+    if (Object.keys(attendanceRecords).length === 0) {
+      toast({
+        title: "No Changes",
+        description: "Please mark attendance for at least one student before saving",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
+    let successCount = 0;
+    let errorCount = 0;
+    const errors: string[] = [];
+
     try {
       const token = authStorage.getToken();
-      if (!token) return;
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
 
       const promises = Object.values(attendanceRecords).map(async (record) => {
-        const response = await fetch('http://127.0.0.1:8000/api/attendance', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            student_id: record.student_id,
-            course_id: parseInt(courseId),
-            date: format(selectedDate, 'yyyy-MM-dd'),
-            status: record.status,
-            notes: record.notes || '',
-          }),
-        });
+        try {
+          const response = await fetch('http://127.0.0.1:8000/api/attendance', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              student_id: record.student_id,
+              course_id: parseInt(courseId),
+              date: format(selectedDate, 'yyyy-MM-dd'),
+              status: record.status,
+              notes: record.notes || '',
+            }),
+          });
 
-        if (!response.ok) {
-          throw new Error(`Failed to save attendance for student ${record.student_id}`);
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to save attendance for student ${record.student_id}`);
+          }
+          
+          successCount++;
+          return response.json();
+        } catch (err) {
+          errorCount++;
+          errors.push(err instanceof Error ? err.message : 'Unknown error');
+          throw err;
         }
-        return response.json();
       });
 
-      await Promise.all(promises);
+      await Promise.allSettled(promises);
 
-      toast({
-        title: "Success",
-        description: "Attendance saved successfully",
-      });
+      // Show appropriate message based on results
+      if (successCount > 0 && errorCount === 0) {
+        toast({
+          title: "Success",
+          description: `Attendance saved successfully for ${successCount} student${successCount > 1 ? 's' : ''}`,
+        });
+        
+        // Refresh the attendance data
+        await fetchExistingAttendance();
+      } else if (successCount > 0 && errorCount > 0) {
+        toast({
+          title: "Partial Success",
+          description: `Saved ${successCount} records, ${errorCount} failed. Please try again for failed records.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errors.length > 0 ? errors[0] : "Failed to save attendance records",
+          variant: "destructive",
+        });
+      }
 
     } catch (error) {
       console.error('Error saving attendance:', error);
       toast({
         title: "Error",
-        description: "Failed to save attendance",
+        description: error instanceof Error ? error.message : "Failed to save attendance",
         variant: "destructive",
       });
     } finally {
@@ -301,23 +387,52 @@ export default function AttendanceList() {
                   />
                 </PopoverContent>
               </Popover>
-              <Button
-                onClick={saveAttendance}
-                disabled={saving || Object.keys(attendanceRecords).length === 0}
-                className="ml-auto"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Attendance
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={markAllPresent}
+                    disabled={saving || enrollments.length === 0}
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    All Present
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={markAllAbsent}
+                    disabled={saving || enrollments.length === 0}
+                  >
+                    <XCircle className="h-3 w-3 mr-1" />
+                    All Absent
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllAttendance}
+                    disabled={saving || Object.keys(attendanceRecords).length === 0}
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <Button
+                  onClick={saveAttendance}
+                  disabled={saving || Object.keys(attendanceRecords).length === 0}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Attendance
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

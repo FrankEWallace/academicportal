@@ -78,7 +78,19 @@ export function AttendanceCard({ studentId }: AttendanceCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-500">Unable to load attendance data</p>
+          <div className="text-center py-8">
+            <XCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold mb-2">Unable to Load Attendance Data</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {error instanceof Error ? error.message : 'There was an error loading your attendance information.'}
+            </p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Try again
+            </button>
+          </div>
         </CardContent>
       </Card>
     );

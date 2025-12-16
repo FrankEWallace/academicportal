@@ -16,16 +16,40 @@ const Login = () => {
   const [role, setRole] = useState<"admin" | "student" | "teacher" | "">("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const loginMutation = useLogin();
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!role) {
+      newErrors.role = "Please select your role";
+    }
+
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!role || !email || !password) {
+    if (!validateForm()) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: "Validation Error",
+        description: "Please correct the errors and try again",
         variant: "destructive",
       });
       return;
@@ -37,10 +61,18 @@ const Login = () => {
         {
           onSuccess: (data) => {
             if (data.success && data.data.user) {
+              toast({
+                title: "Welcome!",
+                description: `Successfully logged in as ${data.data.user.name}`,
+              });
+              
               // Redirect to the page they were trying to access, or their dashboard
               const from = location.state?.from?.pathname || `/${data.data.user.role}`;
               navigate(from, { replace: true });
             }
+          },
+          onError: (error) => {
+            console.error('Login error:', error);
           }
         }
       );
@@ -81,7 +113,7 @@ const Login = () => {
             <div className="space-y-2">
               <Label htmlFor="role">Select Role</Label>
               <Select value={role} onValueChange={(value) => setRole(value as "admin" | "student" | "teacher")}>
-                <SelectTrigger id="role">
+                <SelectTrigger id="role" className={errors.role ? "border-red-500" : ""}>
                   <SelectValue placeholder="Choose your role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -90,6 +122,7 @@ const Login = () => {
                   <SelectItem value="teacher">Teacher</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
             </div>
 
             <div className="space-y-2">
@@ -100,7 +133,9 @@ const Login = () => {
                 placeholder="Enter your email or registration number"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -111,7 +146,9 @@ const Login = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className={errors.password ? "border-red-500" : ""}
               />
+              {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
             </div>
 
             <div className="flex justify-end">
