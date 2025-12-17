@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\AssignmentController;
 use App\Http\Controllers\Api\AssignmentGradeController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\FeeStructureController;
+use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -113,6 +115,29 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{id}', [FeeStructureController::class, 'show'])->middleware('permission:fees.read');
             Route::put('/{id}', [FeeStructureController::class, 'update'])->middleware('permission:fees.update');
             Route::delete('/{id}', [FeeStructureController::class, 'destroy'])->middleware('permission:fees.delete');
+        });
+        
+        // Invoice Management - Admin only
+        Route::prefix('invoices')->group(function () {
+            Route::get('/', [InvoiceController::class, 'index'])->middleware('permission:fees.read');
+            Route::post('/', [InvoiceController::class, 'store'])->middleware('permission:fees.create');
+            Route::post('/bulk', [InvoiceController::class, 'generateBulkInvoices'])->middleware('permission:fees.create');
+            Route::get('/overdue', [InvoiceController::class, 'getOverdueInvoices'])->middleware('permission:fees.read');
+            Route::get('/student/{studentId}', [InvoiceController::class, 'getStudentInvoices'])->middleware('permission:fees.read');
+            Route::get('/{id}', [InvoiceController::class, 'show'])->middleware('permission:fees.read');
+            Route::put('/{id}', [InvoiceController::class, 'update'])->middleware('permission:fees.update');
+            Route::delete('/{id}', [InvoiceController::class, 'destroy'])->middleware('permission:fees.delete');
+        });
+        
+        // Payment Management - Admin only
+        Route::prefix('payments')->group(function () {
+            Route::get('/', [PaymentController::class, 'index'])->middleware('permission:fees.read');
+            Route::post('/', [PaymentController::class, 'store'])->middleware('permission:fees.create');
+            Route::get('/stats', [PaymentController::class, 'getPaymentStats'])->middleware('permission:fees.read');
+            Route::get('/invoice/{invoiceId}', [PaymentController::class, 'getInvoicePayments'])->middleware('permission:fees.read');
+            Route::get('/{id}', [PaymentController::class, 'show'])->middleware('permission:fees.read');
+            Route::put('/{id}', [PaymentController::class, 'update'])->middleware('permission:fees.update');
+            Route::post('/{id}/refund', [PaymentController::class, 'refund'])->middleware('permission:fees.delete');
         });
         
         // Announcements Management - Admin has full access
@@ -239,6 +264,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [FeeStructureController::class, 'index']);
         Route::get('/program-semester', [FeeStructureController::class, 'getByProgramSemester']);
         Route::get('/{id}', [FeeStructureController::class, 'show']);
+    });
+    
+    // Invoice Routes - Read-only for students and teachers
+    Route::prefix('invoices')->middleware('permission:fees.read')->group(function () {
+        Route::get('/student/{studentId}', [InvoiceController::class, 'getStudentInvoices']);
+        Route::get('/{id}', [InvoiceController::class, 'show']);
+    });
+    
+    // Payment Routes - Read-only for students and teachers
+    Route::prefix('payments')->middleware('permission:fees.read')->group(function () {
+        Route::get('/invoice/{invoiceId}', [PaymentController::class, 'getInvoicePayments']);
+        Route::get('/{id}', [PaymentController::class, 'show']);
     });
 });
 

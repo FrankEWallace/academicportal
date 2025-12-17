@@ -197,9 +197,11 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // Call FeeStructure seeder
+        // Call additional seeders
         $this->call([
             FeeStructureSeeder::class,
+            InvoiceSeeder::class,
+            PaymentSeeder::class,
         ]);
 
         echo "Database seeded successfully!\n";
