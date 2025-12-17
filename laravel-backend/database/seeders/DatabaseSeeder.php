@@ -197,6 +197,11 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
+        // Call FeeStructure seeder
+        $this->call([
+            FeeStructureSeeder::class,
+        ]);
+
         echo "Database seeded successfully!\n";
         echo "Admin Login: admin@academic-nexus.com / admin123\n";
         echo "Teacher Login: john.smith@academic-nexus.com / teacher123\n";

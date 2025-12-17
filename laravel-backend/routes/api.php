@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\AssignmentController;
 use App\Http\Controllers\Api\AssignmentGradeController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\FeeStructureController;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +103,17 @@ Route::middleware('auth:sanctum')->group(function () {
         // Fees Management - Admin only
         Route::get('/fees', [AdminController::class, 'fees'])->middleware('permission:fees.read');
         Route::post('/fees', [AdminController::class, 'storeFee'])->middleware('permission:fees.create');
+        
+        // Fee Structures Management - Admin only
+        Route::prefix('fee-structures')->group(function () {
+            Route::get('/', [FeeStructureController::class, 'index'])->middleware('permission:fees.read');
+            Route::post('/', [FeeStructureController::class, 'store'])->middleware('permission:fees.create');
+            Route::get('/overdue', [FeeStructureController::class, 'getOverdue'])->middleware('permission:fees.read');
+            Route::get('/program-semester', [FeeStructureController::class, 'getByProgramSemester'])->middleware('permission:fees.read');
+            Route::get('/{id}', [FeeStructureController::class, 'show'])->middleware('permission:fees.read');
+            Route::put('/{id}', [FeeStructureController::class, 'update'])->middleware('permission:fees.update');
+            Route::delete('/{id}', [FeeStructureController::class, 'destroy'])->middleware('permission:fees.delete');
+        });
         
         // Announcements Management - Admin has full access
         Route::get('/announcements', [AdminController::class, 'announcements'])->middleware('permission:announcements.read');
@@ -220,6 +232,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('permission:assignments.read')->group(function () {
         Route::get('/courses/{course}/assignments', [AssignmentController::class, 'byCourse']);
         Route::get('/assignments/upcoming', [AssignmentController::class, 'upcoming']);
+    });
+    
+    // Fee Structure Routes - Read-only for students and teachers
+    Route::prefix('fee-structures')->middleware('permission:fees.read')->group(function () {
+        Route::get('/', [FeeStructureController::class, 'index']);
+        Route::get('/program-semester', [FeeStructureController::class, 'getByProgramSemester']);
+        Route::get('/{id}', [FeeStructureController::class, 'show']);
     });
 });
 
