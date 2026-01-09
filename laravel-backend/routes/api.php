@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\FeeStructureController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\GpaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -277,13 +278,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/invoice/{invoiceId}', [PaymentController::class, 'getInvoicePayments']);
         Route::get('/{id}', [PaymentController::class, 'show']);
     });
-});
 
-// Health Check Route
-Route::get('/health', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'Academic Nexus Portal API is running',
-        'timestamp' => now(),
-    ]);
+    // GPA Calculation Routes
+    Route::prefix('students/{studentId}')->group(function () {
+        Route::get('/gpa', [GpaController::class, 'getStudentGpa'])->middleware('permission:grades.read');
+        Route::get('/gpa/semester/{semester}', [GpaController::class, 'getSemesterGpa'])->middleware('permission:grades.read');
+        Route::put('/gpa/update', [GpaController::class, 'updateStudentGpa'])->middleware('permission:grades.update');
+        Route::get('/courses/{courseId}/grade', [GpaController::class, 'getCourseGrade'])->middleware('permission:grades.read');
+    });
+
+    // Grade Points and Calculation Routes
+    Route::prefix('grade-points')->group(function () {
+        Route::get('/', [GpaController::class, 'getGradePoints']);
+        Route::post('/calculate', [GpaController::class, 'calculateLetterGrade']);
+    });
+
+    // Course Statistics Routes
+    Route::get('/courses/{courseId}/gpa-statistics', [GpaController::class, 'getCourseStatistics'])
+        ->middleware('permission:grades.read');
+
+    // Class Rankings Routes
+    Route::get('/students/rankings', [GpaController::class, 'getClassRankings'])
+        ->middleware('permission:grades.read');
+    
+    Route::post('/students/gpa/batch', [GpaController::class, 'getBatchGpa'])
+        ->middleware('permission:grades.read');
 });
