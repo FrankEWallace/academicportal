@@ -1,6 +1,6 @@
 # Authentication Endpoints Summary
 
-## ✅ Implemented Endpoints
+## Implemented Endpoints
 
 ### 1. POST /api/auth/login
 **Purpose:** Authenticate existing users and return JWT token
