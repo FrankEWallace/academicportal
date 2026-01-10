@@ -202,6 +202,11 @@ class DatabaseSeeder extends Seeder
             FeeStructureSeeder::class,
             InvoiceSeeder::class,
             PaymentSeeder::class,
+            DegreeProgramSeeder::class,
+            TimetableSeeder::class,
+            AcademicCalendarSeeder::class,
+            PrerequisiteSeeder::class,
+            WaitlistSeeder::class,
         ]);
 
         echo "Database seeded successfully!\n";
