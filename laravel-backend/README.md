@@ -2,13 +2,13 @@
 
 A comprehensive Laravel backend API for the Academic Nexus Portal, providing complete academic management system functionality.
 
-## 📚 Documentation
+##  Documentation
 
 - **[Complete API Documentation](API_DOCUMENTATION.md)** - Detailed endpoint documentation with examples
 - **[Security Features](API_DOCUMENTATION.md#security-features)** - Authentication, rate limiting, and security measures
 - **[Testing Guide](API_DOCUMENTATION.md#testing)** - cURL and Postman examples
 
-## 🚀 Features
+##  Features
 
 - **Multi-role Authentication** (Admin, Student, Teacher) with JWT tokens
 - **Password Reset System** with secure token-based flow
@@ -22,7 +22,7 @@ A comprehensive Laravel backend API for the Academic Nexus Portal, providing com
 - **Role-based Access Control**
 - **CORS Support for React Frontend**
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - PHP 8.2 or higher
 - Composer
@@ -81,7 +81,7 @@ php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider"
 php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-## 🔐 Default Login Credentials
+##  Default Login Credentials
 
 After running seeders, you can use these credentials:
 
@@ -100,7 +100,7 @@ After running seeders, you can use these credentials:
 - **Password:** student123
 - **Role:** student
 
-## 📡 API Endpoints
+##  API Endpoints
 
 ### Authentication
 ```
@@ -140,7 +140,7 @@ GET    /api/teacher/attendance  # Get attendance records
 POST   /api/teacher/grades      # Submit grades
 ```
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ### Core Tables
 - `users` - User authentication and basic info
@@ -154,7 +154,7 @@ POST   /api/teacher/grades      # Submit grades
 - `fees` - Fee management
 - `announcements` - System announcements
 
-## 🔧 Configuration
+##  Configuration
 
 ### CORS Configuration
 The API is configured to accept requests from your React frontend running on `http://localhost:8080`. Update the CORS middleware if your frontend runs on a different port.
@@ -162,7 +162,7 @@ The API is configured to accept requests from your React frontend running on `ht
 ### Sanctum Configuration
 Laravel Sanctum is configured for API token authentication. The tokens are used for stateless API authentication between your React frontend and Laravel backend.
 
-## 🚀 Deployment
+##  Deployment
 
 ### Production Setup
 1. Set `APP_ENV=production` in `.env`
@@ -176,7 +176,7 @@ Laravel Sanctum is configured for API token authentication. The tokens are used 
 ### Web Server Configuration
 Point your web server document root to the `public` directory.
 
-## 🔍 API Testing
+##  API Testing
 
 You can test the API endpoints using tools like:
 - Postman
@@ -199,7 +199,7 @@ curl -X GET http://localhost:8000/api/admin/dashboard \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
-## 📁 Project Structure
+##  Project Structure
 ```
 laravel-backend/
 ├── app/
@@ -232,7 +232,7 @@ laravel-backend/
     └── index.php
 ```
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -240,14 +240,14 @@ laravel-backend/
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
 
-## 🆘 Support
+##  Support
 
-For support, email support@academic-nexus.com or create an issue in the repository.
+For support, email info@fwtechnologies.co.tz or create an issue in the repository.
 
 ---
 
-**Happy Coding! 🎓**
+**Happy Coding! **
