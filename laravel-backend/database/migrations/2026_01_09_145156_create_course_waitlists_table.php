@@ -25,8 +25,8 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
             
-            // Prevent duplicate waitlist entries
-            $table->unique(['course_id', 'student_id', 'semester', 'academic_year']);
+            // Prevent duplicate waitlist entries - with custom short index name
+            $table->unique(['course_id', 'student_id', 'semester', 'academic_year'], 'waitlist_unique');
             $table->index(['course_id', 'status', 'position']);
         });
     }

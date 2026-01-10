@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('students', function (Blueprint $table) {
             $table->foreignId('degree_program_id')->nullable()->after('department_id')->constrained()->onDelete('set null');
+            $table->decimal('cgpa', 3, 2)->default(0)->after('degree_program_id');
             $table->integer('total_credits_earned')->default(0)->after('cgpa');
             $table->integer('current_semester')->default(1)->after('total_credits_earned');
             $table->date('expected_graduation_date')->nullable()->after('current_semester');
@@ -36,6 +37,7 @@ return new class extends Migration
             $table->dropForeign(['degree_program_id']);
             $table->dropColumn([
                 'degree_program_id',
+                'cgpa',
                 'total_credits_earned',
                 'current_semester',
                 'expected_graduation_date',

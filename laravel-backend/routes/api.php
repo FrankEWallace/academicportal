@@ -13,6 +13,12 @@ use App\Http\Controllers\Api\FeeStructureController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\GpaController;
+use App\Http\Controllers\Api\TimetableController;
+use App\Http\Controllers\Api\AcademicCalendarController;
+use App\Http\Controllers\Api\PrerequisiteController;
+use App\Http\Controllers\Api\WaitlistController;
+use App\Http\Controllers\Api\DegreeProgramController;
+use App\Http\Controllers\Api\DegreeProgressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -151,6 +157,48 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->middleware('permission:assignments.read');
         Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->middleware('permission:assignments.update');
         Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->middleware('permission:assignments.delete');
+        
+        // Timetable Management - Admin only
+        Route::get('/timetables', [TimetableController::class, 'index'])->middleware('permission:timetables.read');
+        Route::post('/timetables', [TimetableController::class, 'store'])->middleware('permission:timetables.create');
+        Route::get('/timetables/{id}', [TimetableController::class, 'show'])->middleware('permission:timetables.read');
+        Route::put('/timetables/{id}', [TimetableController::class, 'update'])->middleware('permission:timetables.update');
+        Route::delete('/timetables/{id}', [TimetableController::class, 'destroy'])->middleware('permission:timetables.delete');
+        
+        // Academic Calendar Management - Admin only
+        Route::get('/academic-calendars', [AcademicCalendarController::class, 'index'])->middleware('permission:academic-calendars.read');
+        Route::post('/academic-calendars', [AcademicCalendarController::class, 'store'])->middleware('permission:academic-calendars.create');
+        Route::get('/academic-calendars/{id}', [AcademicCalendarController::class, 'show'])->middleware('permission:academic-calendars.read');
+        Route::put('/academic-calendars/{id}', [AcademicCalendarController::class, 'update'])->middleware('permission:academic-calendars.update');
+        Route::delete('/academic-calendars/{id}', [AcademicCalendarController::class, 'destroy'])->middleware('permission:academic-calendars.delete');
+        
+        // Prerequisite Management - Admin only
+        Route::get('/prerequisites', [PrerequisiteController::class, 'index'])->middleware('permission:prerequisites.read');
+        Route::post('/prerequisites', [PrerequisiteController::class, 'store'])->middleware('permission:prerequisites.create');
+        Route::get('/prerequisites/{id}', [PrerequisiteController::class, 'show'])->middleware('permission:prerequisites.read');
+        Route::put('/prerequisites/{id}', [PrerequisiteController::class, 'update'])->middleware('permission:prerequisites.update');
+        Route::delete('/prerequisites/{id}', [PrerequisiteController::class, 'destroy'])->middleware('permission:prerequisites.delete');
+        
+        // Waitlist Management - Admin only
+        Route::get('/waitlists', [WaitlistController::class, 'index'])->middleware('permission:waitlists.read');
+        Route::post('/waitlists', [WaitlistController::class, 'store'])->middleware('permission:waitlists.create');
+        Route::get('/waitlists/{id}', [WaitlistController::class, 'show'])->middleware('permission:waitlists.read');
+        Route::put('/waitlists/{id}', [WaitlistController::class, 'update'])->middleware('permission:waitlists.update');
+        Route::delete('/waitlists/{id}', [WaitlistController::class, 'destroy'])->middleware('permission:waitlists.delete');
+        
+        // Degree Program Management - Admin only
+        Route::get('/degree-programs', [DegreeProgramController::class, 'index'])->middleware('permission:degree-programs.read');
+        Route::post('/degree-programs', [DegreeProgramController::class, 'store'])->middleware('permission:degree-programs.create');
+        Route::get('/degree-programs/{id}', [DegreeProgramController::class, 'show'])->middleware('permission:degree-programs.read');
+        Route::put('/degree-programs/{id}', [DegreeProgramController::class, 'update'])->middleware('permission:degree-programs.update');
+        Route::delete('/degree-programs/{id}', [DegreeProgramController::class, 'destroy'])->middleware('permission:degree-programs.delete');
+        
+        // Degree Progress Management - Admin only
+        Route::get('/degree-progress', [DegreeProgressController::class, 'index'])->middleware('permission:degree-progress.read');
+        Route::post('/degree-progress', [DegreeProgressController::class, 'store'])->middleware('permission:degree-progress.create');
+        Route::get('/degree-progress/{id}', [DegreeProgressController::class, 'show'])->middleware('permission:degree-progress.read');
+        Route::put('/degree-progress/{id}', [DegreeProgressController::class, 'update'])->middleware('permission:degree-progress.update');
+        Route::delete('/degree-progress/{id}', [DegreeProgressController::class, 'destroy'])->middleware('permission:degree-progress.delete');
     });
     
     // Student Routes - Only students can access
@@ -303,4 +351,91 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::post('/students/gpa/batch', [GpaController::class, 'getBatchGpa'])
         ->middleware('permission:grades.read');
+
+    // ===================================================================
+    // Core Academic Features Routes
+    // ===================================================================
+
+    // Timetable Routes
+    Route::prefix('timetables')->group(function () {
+        // Read operations - All authenticated users
+        Route::get('/', [TimetableController::class, 'index'])->middleware('permission:courses.read');
+        Route::get('/{id}', [TimetableController::class, 'show'])->middleware('permission:courses.read');
+        Route::get('/student/{studentId}', [TimetableController::class, 'studentTimetable'])->middleware('permission:courses.read');
+        Route::get('/teacher/{teacherId}', [TimetableController::class, 'teacherTimetable'])->middleware('permission:courses.read');
+        Route::get('/room/{room}', [TimetableController::class, 'roomSchedule'])->middleware('permission:courses.read');
+        Route::get('/available/slots', [TimetableController::class, 'availableSlots'])->middleware('permission:courses.read');
+        
+        // Write operations - Admin and Teachers only
+        Route::post('/', [TimetableController::class, 'store'])->middleware('permission:courses.create');
+        Route::put('/{id}', [TimetableController::class, 'update'])->middleware('permission:courses.update');
+        Route::delete('/{id}', [TimetableController::class, 'destroy'])->middleware('permission:courses.delete');
+    });
+
+    // Academic Calendar Routes
+    Route::prefix('academic-calendar')->group(function () {
+        // Read operations - All authenticated users
+        Route::get('/', [AcademicCalendarController::class, 'index'])->middleware('permission:announcements.read');
+        Route::get('/upcoming', [AcademicCalendarController::class, 'upcoming'])->middleware('permission:announcements.read');
+        Route::get('/current', [AcademicCalendarController::class, 'current'])->middleware('permission:announcements.read');
+        Route::get('/holidays', [AcademicCalendarController::class, 'holidays'])->middleware('permission:announcements.read');
+        Route::get('/semester/{semester}', [AcademicCalendarController::class, 'bySemester'])->middleware('permission:announcements.read');
+        Route::get('/year/{year}', [AcademicCalendarController::class, 'yearOverview'])->middleware('permission:announcements.read');
+        Route::get('/check-holiday/{date}', [AcademicCalendarController::class, 'checkHoliday'])->middleware('permission:announcements.read');
+        Route::get('/{id}', [AcademicCalendarController::class, 'show'])->middleware('permission:announcements.read');
+        
+        // Write operations - Admin only
+        Route::post('/', [AcademicCalendarController::class, 'store'])->middleware('permission:announcements.create');
+        Route::put('/{id}', [AcademicCalendarController::class, 'update'])->middleware('permission:announcements.update');
+        Route::delete('/{id}', [AcademicCalendarController::class, 'destroy'])->middleware('permission:announcements.delete');
+    });
+
+    // Course Prerequisites Routes
+    Route::prefix('prerequisites')->group(function () {
+        // Read operations - All authenticated users
+        Route::get('/course/{courseId}', [PrerequisiteController::class, 'index'])->middleware('permission:courses.read');
+        Route::get('/check/{courseId}/{studentId}', [PrerequisiteController::class, 'checkEligibility'])->middleware('permission:courses.read');
+        
+        // Write operations - Admin only
+        Route::post('/', [PrerequisiteController::class, 'store'])->middleware('permission:courses.create');
+        Route::put('/{id}', [PrerequisiteController::class, 'update'])->middleware('permission:courses.update');
+        Route::delete('/{id}', [PrerequisiteController::class, 'destroy'])->middleware('permission:courses.delete');
+    });
+
+    // Course Waitlist Routes
+    Route::prefix('waitlist')->group(function () {
+        // Read operations
+        Route::get('/course/{courseId}', [WaitlistController::class, 'index'])->middleware('permission:enrollments.read');
+        Route::get('/student/{studentId}', [WaitlistController::class, 'studentWaitlist'])->middleware('permission:enrollments.read');
+        
+        // Students can add themselves to waitlist
+        Route::post('/', [WaitlistController::class, 'store'])->middleware('role:student,admin');
+        Route::delete('/{id}', [WaitlistController::class, 'destroy'])->middleware('role:student,admin');
+        
+        // Admin only - Process waitlist
+        Route::post('/process/{courseId}', [WaitlistController::class, 'processWaitlist'])->middleware('permission:enrollments.create');
+    });
+
+    // Degree Programs Routes
+    Route::prefix('degree-programs')->group(function () {
+        // Read operations - All authenticated users
+        Route::get('/', [DegreeProgramController::class, 'index'])->middleware('permission:courses.read');
+        Route::get('/{id}', [DegreeProgramController::class, 'show'])->middleware('permission:courses.read');
+        
+        // Write operations - Admin only
+        Route::post('/', [DegreeProgramController::class, 'store'])->middleware('permission:courses.create');
+        Route::put('/{id}', [DegreeProgramController::class, 'update'])->middleware('permission:courses.update');
+        Route::delete('/{id}', [DegreeProgramController::class, 'destroy'])->middleware('permission:courses.delete');
+        
+        // Program Requirements
+        Route::post('/{programId}/requirements', [DegreeProgramController::class, 'addRequirement'])->middleware('permission:courses.create');
+        Route::delete('/{programId}/requirements/{requirementId}', [DegreeProgramController::class, 'removeRequirement'])->middleware('permission:courses.delete');
+    });
+
+    // Degree Progress Routes
+    Route::prefix('degree-progress')->group(function () {
+        Route::get('/student/{studentId}', [DegreeProgressController::class, 'show'])->middleware('permission:grades.read');
+        Route::get('/student/{studentId}/transcript', [DegreeProgressController::class, 'transcript'])->middleware('permission:grades.read');
+        Route::get('/student/{studentId}/remaining', [DegreeProgressController::class, 'remainingRequirements'])->middleware('permission:grades.read');
+    });
 });
