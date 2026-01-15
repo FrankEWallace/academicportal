@@ -207,6 +207,9 @@ class DatabaseSeeder extends Seeder
             AcademicCalendarSeeder::class,
             PrerequisiteSeeder::class,
             WaitlistSeeder::class,
+            HostelSeeder::class,
+            RoomSeeder::class,
+            InsuranceConfigSeeder::class,
         ]);
 
         echo "Database seeded successfully!\n";

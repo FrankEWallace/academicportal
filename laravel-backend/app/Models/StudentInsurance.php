@@ -21,13 +21,17 @@ class StudentInsurance extends Model
         'submission_date',
         'verification_date',
         'verified_by',
+        'verified_at',
         'rejection_reason',
+        'resubmission_requested_at',
     ];
 
     protected $casts = [
         'expiry_date' => 'date',
         'submission_date' => 'date',
         'verification_date' => 'date',
+        'verified_at' => 'datetime',
+        'resubmission_requested_at' => 'datetime',
     ];
 
     /**
@@ -55,6 +59,22 @@ class StudentInsurance extends Model
     }
 
     /**
+     * Scope to get pending verifications
+     */
+    public function scopePendingVerification($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope to get resubmission requests
+     */
+    public function scopeResubmissionRequested($query)
+    {
+        return $query->whereNotNull('resubmission_requested_at');
+    }
+
+    /**
      * Check if insurance is expired.
      */
     public function isExpired(): bool
@@ -68,5 +88,78 @@ class StudentInsurance extends Model
     public function isValid(): bool
     {
         return $this->status === 'verified' && !$this->isExpired();
+    }
+
+    /**
+     * Verify the insurance
+     */
+    public function verify(int $userId): bool
+    {
+        $this->update([
+            'status' => 'verified',
+            'verified_by' => $userId,
+            'verified_at' => now(),
+            'verification_date' => now(),
+            'rejection_reason' => null,
+        ]);
+
+        // Send notification to student
+        Notification::notify(
+            $this->student_id,
+            'insurance_verified',
+            'Insurance Verified',
+            "Your insurance policy ({$this->policy_number}) has been verified.",
+            route('student.insurance.index')
+        );
+
+        return true;
+    }
+
+    /**
+     * Reject the insurance
+     */
+    public function reject(string $reason, int $userId): bool
+    {
+        $this->update([
+            'status' => 'rejected',
+            'verified_by' => $userId,
+            'verified_at' => now(),
+            'rejection_reason' => $reason,
+        ]);
+
+        // Send notification to student
+        Notification::notify(
+            $this->student_id,
+            'insurance_rejected',
+            'Insurance Rejected',
+            "Your insurance submission has been rejected. Reason: {$reason}",
+            route('student.insurance.index')
+        );
+
+        return true;
+    }
+
+    /**
+     * Request resubmission
+     */
+    public function requestResubmission(string $reason, int $userId): bool
+    {
+        $this->update([
+            'status' => 'pending',
+            'resubmission_requested_at' => now(),
+            'rejection_reason' => $reason,
+            'verified_by' => $userId,
+        ]);
+
+        // Send notification to student
+        Notification::notify(
+            $this->student_id,
+            'insurance_rejected',
+            'Insurance Resubmission Required',
+            "Please resubmit your insurance document. Reason: {$reason}",
+            route('student.insurance.index')
+        );
+
+        return true;
     }
 }

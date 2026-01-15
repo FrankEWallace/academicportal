@@ -19,6 +19,21 @@ use App\Http\Controllers\Api\PrerequisiteController;
 use App\Http\Controllers\Api\WaitlistController;
 use App\Http\Controllers\Api\DegreeProgramController;
 use App\Http\Controllers\Api\DegreeProgressController;
+use App\Http\Controllers\Api\RegistrationController;
+use App\Http\Controllers\Api\EnrollmentConfirmationController;
+use App\Http\Controllers\Api\AcademicsController;
+use App\Http\Controllers\Api\AccommodationController;
+use App\Http\Controllers\Api\FeedbackController;
+use App\Http\Controllers\Api\LecturerCAController;
+use App\Http\Controllers\Api\LecturerResultsController;
+use App\Http\Controllers\Api\AdminRegistrationController;
+use App\Http\Controllers\Api\AdminInsuranceController;
+use App\Http\Controllers\Api\AdminEnrollmentController;
+use App\Http\Controllers\Api\AdminResultsController;
+use App\Http\Controllers\Api\AdminAccommodationController;
+use App\Http\Controllers\Api\AdminFeedbackController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\HostelRoomController;
 
 /*
 |--------------------------------------------------------------------------
@@ -218,6 +233,62 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/gpa', function(Request $request) {
             return app(StudentController::class)->getGPA($request, $request->user()->student->id);
         })->middleware('permission:grades.read');
+        
+        // Registration & Fees Routes
+        Route::prefix('registration')->group(function () {
+            // Current Registration
+            Route::get('/current', [RegistrationController::class, 'getCurrentRegistration']);
+            
+            // Registration History
+            Route::get('/history', [RegistrationController::class, 'getRegistrationHistory']);
+            
+            // Insurance
+            Route::post('/insurance/upload', [RegistrationController::class, 'uploadInsurance']);
+            Route::get('/insurance/status', [RegistrationController::class, 'getInsuranceStatus']);
+            
+            // Invoices & Payments
+            Route::get('/invoices', [RegistrationController::class, 'getInvoices']);
+            Route::get('/invoices/{id}/download', [RegistrationController::class, 'downloadInvoice']);
+            Route::get('/payment-history', [RegistrationController::class, 'getPaymentHistory']);
+            Route::post('/payment/verify', [RegistrationController::class, 'verifyPayment']);
+        });
+        
+        // Enrollment Confirmation Routes
+        Route::prefix('enrollment')->group(function () {
+            Route::get('/summary', [EnrollmentConfirmationController::class, 'getEnrollmentSummary']);
+            Route::post('/validate', [EnrollmentConfirmationController::class, 'validateEnrollment']);
+            Route::post('/confirm', [EnrollmentConfirmationController::class, 'confirmEnrollment']);
+            Route::get('/confirmation-email/{id}', [EnrollmentConfirmationController::class, 'getConfirmationEmail']);
+        });
+        
+        // Enhanced Academics Routes
+        Route::prefix('academics')->group(function () {
+            Route::get('/current-semester', [AcademicsController::class, 'getCurrentSemesterPerformance']);
+            Route::get('/course/{courseId}/breakdown', [AcademicsController::class, 'getCourseBreakdown']);
+            Route::get('/historical', [AcademicsController::class, 'getHistoricalRecords']);
+            Route::get('/semester/{semesterCode}', [AcademicsController::class, 'getSemesterPerformance']);
+            Route::get('/transcript/download', [AcademicsController::class, 'downloadTranscript']);
+            Route::get('/gpa-summary', [AcademicsController::class, 'getGPASummary']);
+        });
+        
+        // Accommodation Routes
+        Route::prefix('accommodation')->group(function () {
+            Route::get('/current', [AccommodationController::class, 'getCurrentAccommodation']);
+            Route::get('/roommates', [AccommodationController::class, 'getRoommates']);
+            Route::get('/fees', [AccommodationController::class, 'getAccommodationFees']);
+            Route::get('/amenities', [AccommodationController::class, 'getHostelAmenities']);
+            Route::get('/allocation-letter/download', [AccommodationController::class, 'downloadAllocationLetter']);
+        });
+        
+        // Student Feedback Routes
+        Route::prefix('feedback')->group(function () {
+            Route::post('/submit', [FeedbackController::class, 'submitFeedback']);
+            Route::get('/history', [FeedbackController::class, 'getFeedbackHistory']);
+            Route::get('/{id}', [FeedbackController::class, 'getFeedbackDetails']);
+            Route::post('/{id}/attachment', [FeedbackController::class, 'uploadAttachment']);
+            Route::get('/categories', [FeedbackController::class, 'getFeedbackCategories']);
+            Route::put('/{id}/mark-viewed', [FeedbackController::class, 'markAsViewed']);
+        });
     });
     
     // Teacher Routes - Only teachers can access
@@ -437,5 +508,178 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/student/{studentId}', [DegreeProgressController::class, 'show'])->middleware('permission:grades.read');
         Route::get('/student/{studentId}/transcript', [DegreeProgressController::class, 'transcript'])->middleware('permission:grades.read');
         Route::get('/student/{studentId}/remaining', [DegreeProgressController::class, 'remainingRequirements'])->middleware('permission:grades.read');
+    });
+
+    // Student Module Enhancement Routes (29 endpoints)
+    Route::prefix('student')->middleware('role:student')->group(function () {
+        // Registration & Fees (8 endpoints)
+        Route::get('/registration/current', [RegistrationController::class, 'getCurrentRegistration']);
+        Route::get('/registration/history', [RegistrationController::class, 'getRegistrationHistory']);
+        Route::post('/insurance/upload', [RegistrationController::class, 'uploadInsurance']);
+        Route::get('/insurance/status', [RegistrationController::class, 'getInsuranceStatus']);
+        Route::get('/invoices', [RegistrationController::class, 'getInvoices']);
+        Route::get('/invoices/{id}/download', [RegistrationController::class, 'downloadInvoice']);
+        Route::get('/payment-history', [RegistrationController::class, 'getPaymentHistory']);
+        Route::post('/payment/verify', [RegistrationController::class, 'verifyPayment']);
+        
+        // Enrollment Confirmation (4 endpoints)
+        Route::get('/enrollment/summary', [EnrollmentConfirmationController::class, 'getEnrollmentSummary']);
+        Route::post('/enrollment/validate', [EnrollmentConfirmationController::class, 'validateEnrollment']);
+        Route::post('/enrollment/confirm', [EnrollmentConfirmationController::class, 'confirmEnrollment']);
+        Route::get('/enrollment/confirmation-email/{id}', [EnrollmentConfirmationController::class, 'getConfirmationEmail']);
+        
+        // Enhanced Academics (6 endpoints)
+        Route::get('/academics/current-semester', [AcademicsController::class, 'getCurrentSemesterPerformance']);
+        Route::get('/academics/course/{courseId}/breakdown', [AcademicsController::class, 'getCourseBreakdown']);
+        Route::get('/academics/historical', [AcademicsController::class, 'getHistoricalRecords']);
+        Route::get('/academics/semester/{semesterCode}', [AcademicsController::class, 'getSemesterPerformance']);
+        Route::get('/academics/transcript/download', [AcademicsController::class, 'downloadTranscript']);
+        Route::get('/academics/gpa-summary', [AcademicsController::class, 'getGPASummary']);
+        
+        // Accommodation (5 endpoints)
+        Route::get('/accommodation/current', [AccommodationController::class, 'getCurrentAccommodation']);
+        Route::get('/accommodation/roommates', [AccommodationController::class, 'getRoommates']);
+        Route::get('/accommodation/fees', [AccommodationController::class, 'getAccommodationFees']);
+        Route::get('/accommodation/amenities', [AccommodationController::class, 'getHostelAmenities']);
+        Route::get('/accommodation/allocation-letter/download', [AccommodationController::class, 'downloadAllocationLetter']);
+        
+        // Student Feedback (6 endpoints)
+        Route::post('/feedback/submit', [FeedbackController::class, 'submitFeedback']);
+        Route::get('/feedback/history', [FeedbackController::class, 'getFeedbackHistory']);
+        Route::get('/feedback/{id}', [FeedbackController::class, 'getFeedbackDetails']);
+        Route::post('/feedback/{id}/attachment', [FeedbackController::class, 'uploadAttachment']);
+        Route::get('/feedback/categories', [FeedbackController::class, 'getFeedbackCategories']);
+        Route::put('/feedback/{id}/mark-viewed', [FeedbackController::class, 'markAsViewed']);
+    });
+
+    // ========================================================================
+    // LECTURER MODULE - Continuous Assessment & Results Management (16 endpoints)
+    // ========================================================================
+    Route::prefix('lecturer')->middleware('role:lecturer')->group(function () {
+        
+        // Continuous Assessment Management (8 endpoints)
+        Route::prefix('ca')->group(function () {
+            Route::get('/courses', [LecturerCAController::class, 'getCourses']);
+            Route::get('/courses/{courseId}/students', [LecturerCAController::class, 'getStudents']);
+            Route::get('/courses/{courseId}/scores', [LecturerCAController::class, 'getScores']);
+            Route::put('/scores/{assessmentId}', [LecturerCAController::class, 'updateScore']);
+            Route::post('/scores/bulk-update', [LecturerCAController::class, 'bulkUpdateScores']);
+            Route::post('/courses/{courseId}/lock', [LecturerCAController::class, 'lockScores']);
+            Route::post('/courses/{courseId}/submit-approval', [LecturerCAController::class, 'submitForApproval']);
+            Route::get('/statistics', [LecturerCAController::class, 'getStatistics']);
+        });
+
+        // Final Exam Results Management (8 endpoints)
+        Route::prefix('results')->group(function () {
+            Route::get('/courses', [LecturerResultsController::class, 'getCourses']);
+            Route::get('/courses/{courseId}/students', [LecturerResultsController::class, 'getStudents']);
+            Route::get('/courses/{courseId}/results', [LecturerResultsController::class, 'getResults']);
+            Route::put('/exams/{examId}', [LecturerResultsController::class, 'updateResult']);
+            Route::post('/bulk-update', [LecturerResultsController::class, 'bulkUpdateResults']);
+            Route::post('/courses/{courseId}/lock', [LecturerResultsController::class, 'lockResults']);
+            Route::post('/courses/{courseId}/submit-moderation', [LecturerResultsController::class, 'submitForModeration']);
+            Route::get('/statistics', [LecturerResultsController::class, 'getStatistics']);
+        });
+    });
+
+    // ========================================================================
+    // ADMINISTRATOR MODULE - Enhanced Management & Oversight (58 endpoints)
+    // ========================================================================
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
+        
+        // Registration Management (10 endpoints)
+        Route::prefix('registrations')->group(function () {
+            Route::get('/', [AdminRegistrationController::class, 'index']);
+            Route::get('/pending-verification', [AdminRegistrationController::class, 'pendingVerification']);
+            Route::get('/blocked', [AdminRegistrationController::class, 'blockedRegistrations']);
+            Route::get('/statistics', [AdminRegistrationController::class, 'statistics']);
+            Route::get('/{id}', [AdminRegistrationController::class, 'show']);
+            Route::post('/{id}/verify-fees', [AdminRegistrationController::class, 'verifyFees']);
+            Route::post('/{id}/block', [AdminRegistrationController::class, 'block']);
+            Route::post('/{id}/unblock', [AdminRegistrationController::class, 'unblock']);
+            Route::post('/{id}/override', [AdminRegistrationController::class, 'override']);
+            Route::get('/{id}/audit-logs', [AdminRegistrationController::class, 'auditLogs']);
+        });
+
+        // Insurance Management (8 endpoints)
+        Route::prefix('insurance')->group(function () {
+            Route::get('/', [AdminInsuranceController::class, 'index']);
+            Route::get('/pending-verification', [AdminInsuranceController::class, 'pendingVerification']);
+            Route::get('/statistics', [AdminInsuranceController::class, 'statistics']);
+            Route::get('/config', [AdminInsuranceController::class, 'getConfig']);
+            Route::put('/config', [AdminInsuranceController::class, 'updateConfig']);
+            Route::get('/{id}', [AdminInsuranceController::class, 'show']);
+            Route::post('/{id}/verify', [AdminInsuranceController::class, 'verify']);
+            Route::post('/{id}/reject', [AdminInsuranceController::class, 'reject']);
+            Route::post('/{id}/request-resubmission', [AdminInsuranceController::class, 'requestResubmission']);
+        });
+
+        // Enrollment Management (9 endpoints)
+        Route::prefix('enrollments')->group(function () {
+            Route::get('/', [AdminEnrollmentController::class, 'index']);
+            Route::get('/pending-approval', [AdminEnrollmentController::class, 'pendingApproval']);
+            Route::get('/statistics', [AdminEnrollmentController::class, 'statistics']);
+            Route::get('/{id}', [AdminEnrollmentController::class, 'show']);
+            Route::post('/{id}/approve', [AdminEnrollmentController::class, 'approve']);
+            Route::post('/{id}/reject', [AdminEnrollmentController::class, 'reject']);
+            Route::post('/bulk-approve', [AdminEnrollmentController::class, 'bulkApprove']);
+            Route::post('/bulk-reject', [AdminEnrollmentController::class, 'bulkReject']);
+            Route::get('/{id}/audit-logs', [AdminEnrollmentController::class, 'auditLogs']);
+        });
+
+        // Results Moderation (8 endpoints)
+        Route::prefix('results')->group(function () {
+            Route::get('/ca/pending', [AdminResultsController::class, 'getPendingCA']);
+            Route::post('/ca/{id}/approve', [AdminResultsController::class, 'approveCA']);
+            Route::post('/ca/{id}/reject', [AdminResultsController::class, 'rejectCA']);
+            Route::get('/exams/pending', [AdminResultsController::class, 'getPendingExams']);
+            Route::post('/exams/{id}/moderate', [AdminResultsController::class, 'moderateExam']);
+            Route::post('/exams/{id}/publish', [AdminResultsController::class, 'publishExam']);
+            Route::post('/exams/bulk-publish', [AdminResultsController::class, 'bulkPublishExams']);
+            Route::get('/statistics', [AdminResultsController::class, 'statistics']);
+        });
+
+        // Accommodation Management (10 endpoints)
+        Route::prefix('accommodations')->group(function () {
+            Route::get('/hostels', [AdminAccommodationController::class, 'getHostels']);
+            Route::get('/rooms', [AdminAccommodationController::class, 'getRooms']);
+            Route::get('/pending', [AdminAccommodationController::class, 'getPendingAllocations']);
+            Route::get('/statistics', [AdminAccommodationController::class, 'statistics']);
+            Route::get('/rooms/available', [AdminAccommodationController::class, 'getAvailableRooms']);
+            Route::get('/hostels/{id}/occupancy', [AdminAccommodationController::class, 'getHostelOccupancy']);
+            Route::get('/{id}', [AdminAccommodationController::class, 'show']);
+            Route::post('/{id}/allocate', [AdminAccommodationController::class, 'allocate']);
+            Route::post('/{id}/vacate', [AdminAccommodationController::class, 'vacate']);
+            Route::post('/bulk-allocate', [AdminAccommodationController::class, 'bulkAllocate']);
+        });
+
+        // Feedback Management (7 endpoints)
+        Route::prefix('feedback')->group(function () {
+            Route::get('/', [AdminFeedbackController::class, 'index']);
+            Route::get('/unassigned', [AdminFeedbackController::class, 'getUnassigned']);
+            Route::get('/statistics', [AdminFeedbackController::class, 'statistics']);
+            Route::get('/{id}', [AdminFeedbackController::class, 'show']);
+            Route::post('/{id}/assign', [AdminFeedbackController::class, 'assign']);
+            Route::post('/{id}/change-priority', [AdminFeedbackController::class, 'changePriority']);
+            Route::put('/{id}/update-status', [AdminFeedbackController::class, 'updateStatus']);
+        });
+    });
+
+    // ========================================================================
+    // NOTIFICATIONS - All Authenticated Users (4 endpoints)
+    // ========================================================================
+    Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::get('/unread-count', [NotificationController::class, 'getUnreadCount']);
+        Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead']);
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    });
+
+    // ========================================================================
+    // PUBLIC HOSTEL/ROOM INFO - All Authenticated Users (2 endpoints)
+    // ========================================================================
+    Route::prefix('hostels')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [HostelRoomController::class, 'getHostels']);
+        Route::get('/{id}/rooms/available', [HostelRoomController::class, 'getAvailableRooms']);
     });
 });

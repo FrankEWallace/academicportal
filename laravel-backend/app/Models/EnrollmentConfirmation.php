@@ -22,6 +22,9 @@ class EnrollmentConfirmation extends Model
         'academic_calendar_checked',
         'confirmation_date',
         'confirmation_email_sent',
+        'admin_override',
+        'override_by',
+        'override_reason',
     ];
 
     protected $casts = [
@@ -32,6 +35,7 @@ class EnrollmentConfirmation extends Model
         'attendance_policy_agreed' => 'boolean',
         'academic_calendar_checked' => 'boolean',
         'confirmation_date' => 'date',
+        'admin_override' => 'boolean',
     ];
 
     /**
@@ -48,6 +52,14 @@ class EnrollmentConfirmation extends Model
     public function courses(): HasMany
     {
         return $this->hasMany(EnrollmentConfirmationCourse::class);
+    }
+
+    /**
+     * Get the admin who overrode this confirmation
+     */
+    public function overrideBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'override_by');
     }
 
     /**
@@ -70,5 +82,30 @@ class EnrollmentConfirmation extends Model
         $this->confirmed = true;
         $this->confirmation_date = now();
         $this->save();
+    }
+
+    /**
+     * Override confirmation (admin action)
+     */
+    public function override(string $reason, int $userId): bool
+    {
+        $this->update([
+            'admin_override' => true,
+            'override_by' => $userId,
+            'override_reason' => $reason,
+            'confirmed' => true,
+            'confirmation_date' => now(),
+        ]);
+
+        // Send notification to student
+        Notification::notify(
+            $this->student_id,
+            'enrollment_confirmed',
+            'Enrollment Confirmed (Admin Override)',
+            "Your enrollment confirmation for {$this->semester_code} has been approved by admin override.",
+            route('student.enrollment-confirmation.index')
+        );
+
+        return true;
     }
 }

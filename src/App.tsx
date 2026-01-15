@@ -33,6 +33,16 @@ import ComingSoonPage from "./pages/ComingSoonPage";
 import NotFound from "./pages/NotFound";
 import { Building2, ClipboardCheck, FileText, CreditCard, Megaphone } from "lucide-react";
 
+// Lecturer Components
+import LecturerDashboard from "./pages/lecturer/LecturerDashboard";
+import LecturerCAManagement from "./pages/lecturer/LecturerCAManagement";
+import LecturerResultsManagement from "./pages/lecturer/LecturerResultsManagement";
+
+// Admin Components
+import AdminFullDashboard from "./pages/admin/AdminDashboard";
+import AdminRegistrationControl from "./pages/admin/AdminRegistrationControl";
+import AdminAccommodationManagement from "./pages/admin/AdminAccommodationManagement";
+
 const queryClient = createQueryClientWithErrorHandling();
 
 const App = () => (
@@ -64,7 +74,17 @@ const App = () => (
               {/* Protected Admin Routes */}
               <Route path="/admin" element={
                 <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
+                  <AdminFullDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/registrations" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminRegistrationControl />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/accommodations" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminAccommodationManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/courses" element={
@@ -184,6 +204,23 @@ const App = () => (
               <Route path="/teacher/calendar" element={
                 <ProtectedRoute requiredRole="teacher">
                   <TeacherCalendarPage />
+                </ProtectedRoute>
+              } />
+              
+              {/* Lecturer Routes (same as teacher for now) */}
+              <Route path="/lecturer" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <LecturerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/lecturer/ca" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <LecturerCAManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/lecturer/results" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <LecturerResultsManagement />
                 </ProtectedRoute>
               } />
               
