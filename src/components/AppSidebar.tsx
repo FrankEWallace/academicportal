@@ -9,7 +9,14 @@ import {
   CreditCard,
   Megaphone,
   Settings,
-  LogOut
+  LogOut,
+  Calendar,
+  CalendarDays,
+  ListChecks,
+  UserCog,
+  Clock,
+  Award,
+  TrendingUp
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -36,22 +43,63 @@ interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const menuItems: MenuItem[] = [
+const adminMenuItems: MenuItem[] = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Students", url: "/admin/students", icon: Users },
   { title: "Teachers", url: "/admin/teachers", icon: GraduationCap },
   { title: "Courses", url: "/admin/courses", icon: BookOpen },
   { title: "Departments", url: "/admin/departments", icon: Building2 },
+  { title: "Timetable", url: "/admin/timetable", icon: Clock },
+  { title: "Academic Calendar", url: "/admin/calendar", icon: CalendarDays },
   { title: "Attendance", url: "/admin/attendance", icon: ClipboardCheck },
   { title: "Exams & Grades", url: "/admin/exams", icon: FileText },
   { title: "Fees", url: "/admin/fees", icon: CreditCard },
   { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
 ];
 
+const studentMenuItems: MenuItem[] = [
+  { title: "Dashboard", url: "/student", icon: LayoutDashboard },
+  { title: "My Courses", url: "/student/courses", icon: BookOpen },
+  { title: "Timetable", url: "/student/timetable", icon: Clock },
+  { title: "Academic Calendar", url: "/student/calendar", icon: CalendarDays },
+  { title: "Degree Progress", url: "/student/progress", icon: TrendingUp },
+  { title: "Waitlist", url: "/student/waitlist", icon: ListChecks },
+  { title: "Grades", url: "/student/grades", icon: Award },
+  { title: "Attendance", url: "/student/attendance", icon: ClipboardCheck },
+  { title: "Fees", url: "/student/fees", icon: CreditCard },
+  { title: "Announcements", url: "/student/announcements", icon: Megaphone },
+];
+
+const teacherMenuItems: MenuItem[] = [
+  { title: "Dashboard", url: "/teacher", icon: LayoutDashboard },
+  { title: "My Courses", url: "/teacher/courses", icon: BookOpen },
+  { title: "Timetable", url: "/teacher/timetable", icon: Clock },
+  { title: "Academic Calendar", url: "/teacher/calendar", icon: CalendarDays },
+  { title: "Students", url: "/teacher/students", icon: Users },
+  { title: "Attendance", url: "/teacher/attendance", icon: ClipboardCheck },
+  { title: "Grades", url: "/teacher/grades", icon: Award },
+  { title: "Announcements", url: "/teacher/announcements", icon: Megaphone },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const { logout, user } = useAuth();
   const isCollapsed = state === "collapsed";
+
+  // Select menu items based on user role
+  const menuItems = user?.role === 'student' ? studentMenuItems :
+                    user?.role === 'teacher' ? teacherMenuItems :
+                    adminMenuItems;
+
+  // Determine base route for the role
+  const baseRoute = user?.role === 'student' ? '/student' :
+                    user?.role === 'teacher' ? '/teacher' :
+                    '/admin';
+
+  // Determine panel title
+  const panelTitle = user?.role === 'student' ? 'Student Portal' :
+                     user?.role === 'teacher' ? 'Teacher Portal' :
+                     'Admin Panel';
 
   return (
     <Sidebar
@@ -66,7 +114,7 @@ export function AppSidebar() {
             </div>
             <div>
               <h2 className="font-bold text-sidebar-foreground">Academic Portal</h2>
-              <p className="text-xs text-sidebar-foreground/70">Admin Panel</p>
+              <p className="text-xs text-sidebar-foreground/70">{panelTitle}</p>
             </div>
           </div>
         )}
@@ -91,7 +139,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      end={item.url === "/admin"}
+                      end={item.url === baseRoute}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-sidebar-accent rounded-lg transition-colors"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     >
@@ -111,14 +159,14 @@ export function AppSidebar() {
           <div className="mb-4 p-3 bg-sidebar-accent/50 rounded-lg">
             <p className="text-sm font-medium text-sidebar-foreground">{user.name}</p>
             <p className="text-xs text-sidebar-foreground/60">{user.email}</p>
-            <p className="text-xs text-sidebar-foreground/60">Administrator</p>
+            <p className="text-xs text-sidebar-foreground/60 capitalize">{user.role}</p>
           </div>
         )}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <NavLink
-                to="/admin/settings"
+                to={`${baseRoute}/settings`}
                 className="flex items-center gap-3 px-3 py-2 hover:bg-sidebar-accent rounded-lg transition-colors"
                 activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
               >

@@ -9,7 +9,9 @@ import {
   BookPlus,
   GraduationCap,
   Building2,
-  ClipboardCheck
+  ClipboardCheck,
+  Clock,
+  CalendarDays
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,18 +49,32 @@ const AdminDashboard = () => {
       color: "bg-green-500"
     },
     {
+      title: "Timetable",
+      description: "Manage class schedules",
+      icon: Clock,
+      action: () => navigate("/admin/timetable"),
+      color: "bg-purple-500"
+    },
+    {
+      title: "Calendar",
+      description: "Academic events & dates",
+      icon: CalendarDays,
+      action: () => navigate("/admin/calendar"),
+      color: "bg-orange-500"
+    },
+    {
       title: "View Reports",
       description: "Generate analytics reports",
       icon: TrendingUp,
       action: () => navigate("/admin/reports"),
-      color: "bg-purple-500"
+      color: "bg-pink-500"
     },
     {
       title: "Manage Departments",
       description: "Organize academic departments",
       icon: Building2,
       action: () => navigate("/admin/departments"),
-      color: "bg-orange-500"
+      color: "bg-cyan-500"
     }
   ];
 
@@ -112,7 +128,7 @@ const AdminDashboard = () => {
         {/* Quick Actions */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickActions.map((action, index) => (
               <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={action.action}>
                 <CardContent className="p-4">

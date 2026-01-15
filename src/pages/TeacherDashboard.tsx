@@ -2,9 +2,12 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, FileText, Calendar, Upload, Edit } from "lucide-react";
+import { BookOpen, Users, FileText, Calendar, Upload, Edit, Clock, CalendarDays } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const TeacherDashboard = () => {
+  const navigate = useNavigate();
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -40,7 +43,15 @@ const TeacherDashboard = () => {
             <CardDescription>Common tasks and operations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-5">
+              <Button className="h-auto py-4 flex flex-col gap-2" variant="outline" onClick={() => navigate('/teacher/timetable')}>
+                <Clock className="w-5 h-5" />
+                <span>My Timetable</span>
+              </Button>
+              <Button className="h-auto py-4 flex flex-col gap-2" variant="outline" onClick={() => navigate('/teacher/calendar')}>
+                <CalendarDays className="w-5 h-5" />
+                <span>Calendar</span>
+              </Button>
               <Button className="h-auto py-4 flex flex-col gap-2" variant="outline">
                 <Upload className="w-5 h-5" />
                 <span>Upload Grades</span>

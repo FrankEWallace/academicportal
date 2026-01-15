@@ -21,6 +21,14 @@ import AttendanceList from "./pages/AttendanceList";
 import CoursesManagement from "./pages/CoursesManagement";
 import StudentsManagement from "./pages/StudentsManagement";
 import TeachersManagement from "./pages/TeachersManagement";
+import StudentTimetablePage from "./pages/StudentTimetablePage";
+import TeacherTimetablePage from "./pages/TeacherTimetablePage";
+import AdminTimetablePage from "./pages/AdminTimetablePage";
+import StudentCalendarPage from "./pages/StudentCalendarPage";
+import TeacherCalendarPage from "./pages/TeacherCalendarPage";
+import AdminCalendarPage from "./pages/AdminCalendarPage";
+import StudentProgressPage from "./pages/StudentProgressPage";
+import StudentWaitlistPage from "./pages/StudentWaitlistPage";
 import ComingSoonPage from "./pages/ComingSoonPage";
 import NotFound from "./pages/NotFound";
 import { Building2, ClipboardCheck, FileText, CreditCard, Megaphone } from "lucide-react";
@@ -72,6 +80,16 @@ const App = () => (
               <Route path="/admin/teachers" element={
                 <ProtectedRoute requiredRole="admin">
                   <TeachersManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/timetable" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminTimetablePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/calendar" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminCalendarPage />
                 </ProtectedRoute>
               } />
               <Route path="/admin/departments" element={
@@ -126,6 +144,26 @@ const App = () => (
                   <StudentDashboard />
                 </ProtectedRoute>
               } />
+              <Route path="/student/timetable" element={
+                <ProtectedRoute requiredRole="student">
+                  <StudentTimetablePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/student/calendar" element={
+                <ProtectedRoute requiredRole="student">
+                  <StudentCalendarPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/student/progress" element={
+                <ProtectedRoute requiredRole="student">
+                  <StudentProgressPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/student/waitlist" element={
+                <ProtectedRoute requiredRole="student">
+                  <StudentWaitlistPage />
+                </ProtectedRoute>
+              } />
               <Route path="/student/profile" element={
                 <ProtectedRoute requiredRole="student">
                   <StudentProfile />
@@ -136,6 +174,16 @@ const App = () => (
               <Route path="/teacher" element={
                 <ProtectedRoute requiredRole="teacher">
                   <TeacherDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/teacher/timetable" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <TeacherTimetablePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/teacher/calendar" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <TeacherCalendarPage />
                 </ProtectedRoute>
               } />
               

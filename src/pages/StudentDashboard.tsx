@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Calendar, TrendingUp, Bell, Loader2, Clock, FileText, Award, Plus } from "lucide-react";
+import { BookOpen, Calendar, TrendingUp, Bell, Loader2, Clock, FileText, Award, CalendarDays, ListChecks } from "lucide-react";
 import { useStudentCourses, useCurrentUser, useStudentGPA } from "@/hooks/useApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -99,6 +99,69 @@ const StudentDashboard = () => {
                  (attendanceData?.overall_statistics?.attendance_percentage || 0) >= 75 ? 'Good attendance' : 
                  'Needs improvement'}
               </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Access Cards - New Academic Features */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-all hover:border-primary"
+            onClick={() => navigate('/student/timetable')}
+          >
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-semibold">Timetable</h3>
+                <p className="text-xs text-muted-foreground">View your schedule</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-all hover:border-primary"
+            onClick={() => navigate('/student/calendar')}
+          >
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                  <CalendarDays className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="font-semibold">Calendar</h3>
+                <p className="text-xs text-muted-foreground">Academic events</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-all hover:border-primary"
+            onClick={() => navigate('/student/progress')}
+          >
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-green-500" />
+                </div>
+                <h3 className="font-semibold">Progress</h3>
+                <p className="text-xs text-muted-foreground">Degree tracking</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-all hover:border-primary"
+            onClick={() => navigate('/student/waitlist')}
+          >
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                  <ListChecks className="w-6 h-6 text-orange-500" />
+                </div>
+                <h3 className="font-semibold">Waitlist</h3>
+                <p className="text-xs text-muted-foreground">Course queues</p>
+              </div>
             </CardContent>
           </Card>
         </div>
