@@ -1,6 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminRegistrationControl from './AdminRegistrationControl';
 import AdminAccommodationManagement from './AdminAccommodationManagement';
+import AdminInsuranceVerification from './AdminInsuranceVerification';
+import AdminEnrollmentApproval from './AdminEnrollmentApproval';
+import AdminFeedbackManagement from './AdminFeedbackManagement';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function AdminDashboard() {
@@ -33,21 +36,11 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="insurance">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Insurance Verification</h2>
-              <p className="text-muted-foreground">
-                Insurance verification component - Coming soon
-              </p>
-            </div>
+            <AdminInsuranceVerification />
           </TabsContent>
 
           <TabsContent value="enrollments">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Enrollment Approval</h2>
-              <p className="text-muted-foreground">
-                Enrollment approval component - Coming soon
-              </p>
-            </div>
+            <AdminEnrollmentApproval />
           </TabsContent>
 
           <TabsContent value="results">
@@ -64,12 +57,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="feedback">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Feedback Management</h2>
-              <p className="text-muted-foreground">
-                Feedback management component - Coming soon
-              </p>
-            </div>
+            <AdminFeedbackManagement />
           </TabsContent>
         </Tabs>
       </div>
