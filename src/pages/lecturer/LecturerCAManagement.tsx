@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, XCircle, Lock, Unlock, Upload, Download, BarChart3 } from 'lucide-react';
+import { lecturerCAApi } from '@/lib/api/lecturerApi';
+import { useToast } from '@/hooks/use-toast';
 
 interface Course {
   id: number;
@@ -44,6 +46,7 @@ export default function LecturerCAManagement() {
   const [statistics, setStatistics] = useState<CAStatistics | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchCourses();
@@ -53,35 +56,16 @@ export default function LecturerCAManagement() {
   const fetchCourses = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/lecturer/ca/courses');
-      // const data = await response.json();
-      
-      // Mock data
-      setCourses([
-        {
-          id: 1,
-          code: 'CS301',
-          title: 'Data Structures',
-          semester: 1,
-          academic_year: '2025/2026',
-          total_students: 45,
-          ca_submitted: 38,
-          ca_locked: false,
-        },
-        {
-          id: 2,
-          code: 'CS302',
-          title: 'Database Systems',
-          semester: 1,
-          academic_year: '2025/2026',
-          total_students: 52,
-          ca_submitted: 52,
-          ca_locked: true,
-        },
-      ]);
-    } catch (error) {
-      console.error('Failed to fetch courses:', error);
+      const response = await lecturerCAApi.getCourses();
+      if (response.success) {
+        setCourses(response.data);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to fetch courses',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -89,14 +73,11 @@ export default function LecturerCAManagement() {
 
   const fetchStatistics = async () => {
     try {
-      // TODO: Replace with actual API call
-      setStatistics({
-        total_courses: 4,
-        total_submissions: 156,
-        pending_approvals: 2,
-        locked_courses: 1,
-      });
-    } catch (error) {
+      const response = await lecturerCAApi.getStatistics();
+      if (response.success) {
+        setStatistics(response.data);
+      }
+    } catch (error: any) {
       console.error('Failed to fetch statistics:', error);
     }
   };
@@ -104,35 +85,16 @@ export default function LecturerCAManagement() {
   const fetchStudents = async (courseId: number) => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/lecturer/ca/courses/${courseId}/students`);
-      // const data = await response.json();
-      
-      // Mock data
-      setStudents([
-        {
-          id: 1,
-          student_id: '1001',
-          name: 'John Doe',
-          matric_number: 'CS/2023/001',
-          current_score: 18,
-          max_score: 30,
-          submitted_at: '2026-01-10',
-          locked: false,
-        },
-        {
-          id: 2,
-          student_id: '1002',
-          name: 'Jane Smith',
-          matric_number: 'CS/2023/002',
-          current_score: null,
-          max_score: 30,
-          submitted_at: null,
-          locked: false,
-        },
-      ]);
-    } catch (error) {
-      console.error('Failed to fetch students:', error);
+      const response = await lecturerCAApi.getCourseStudents(courseId);
+      if (response.success) {
+        setStudents(response.data);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to fetch students',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -140,43 +102,60 @@ export default function LecturerCAManagement() {
 
   const handleUpdateScore = async (studentId: number, score: number) => {
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/lecturer/ca/scores/${studentId}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify({ score }),
-      // });
-      
-      setMessage('Score updated successfully');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      console.error('Failed to update score:', error);
+      const response = await lecturerCAApi.updateScore(studentId, { score });
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Score updated successfully',
+        });
+        // Refresh students list
+        if (selectedCourse) {
+          fetchStudents(selectedCourse.id);
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update score',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleLockCourse = async (courseId: number) => {
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/lecturer/ca/courses/${courseId}/lock`, {
-      //   method: 'POST',
-      // });
-      
-      setMessage('Course locked successfully');
-      fetchCourses();
-    } catch (error) {
-      console.error('Failed to lock course:', error);
+      const response = await lecturerCAApi.lockCourse(courseId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Course locked successfully',
+        });
+        fetchCourses();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to lock course',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleSubmitForApproval = async (courseId: number) => {
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/lecturer/ca/courses/${courseId}/submit-approval`, {
-      //   method: 'POST',
-      // });
-      
-      setMessage('Submitted for approval');
-    } catch (error) {
-      console.error('Failed to submit:', error);
+      const response = await lecturerCAApi.submitForApproval(courseId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Submitted for approval',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit',
+        variant: 'destructive',
+      });
     }
   };
 

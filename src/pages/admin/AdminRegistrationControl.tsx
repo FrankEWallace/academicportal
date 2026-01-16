@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CheckCircle, XCircle, Ban, AlertTriangle, FileText, DollarSign } from 'lucide-react';
+import { adminRegistrationApi } from '@/lib/api/adminApi';
+import { useToast } from '@/hooks/use-toast';
 
 interface Registration {
   id: number;
@@ -37,6 +39,7 @@ export default function AdminRegistrationControl() {
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'blocked'>('all');
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchRegistrations();
@@ -46,56 +49,16 @@ export default function AdminRegistrationControl() {
   const fetchRegistrations = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      const mockData: Registration[] = [
-        {
-          id: 1,
-          student_id: 101,
-          student_name: 'John Doe',
-          matric_number: 'CS/2023/001',
-          semester: 1,
-          academic_year: '2025/2026',
-          courses_count: 8,
-          total_units: 24,
-          status: 'pending',
-          fee_status: 'paid',
-          submitted_at: '2026-01-10 14:30:00',
-        },
-        {
-          id: 2,
-          student_id: 102,
-          student_name: 'Jane Smith',
-          matric_number: 'CS/2023/002',
-          semester: 1,
-          academic_year: '2025/2026',
-          courses_count: 7,
-          total_units: 21,
-          status: 'verified',
-          fee_status: 'paid',
-          submitted_at: '2026-01-09 10:15:00',
-        },
-        {
-          id: 3,
-          student_id: 103,
-          student_name: 'Mike Johnson',
-          matric_number: 'CS/2023/003',
-          semester: 1,
-          academic_year: '2025/2026',
-          courses_count: 9,
-          total_units: 27,
-          status: 'pending',
-          fee_status: 'partial',
-          submitted_at: '2026-01-11 09:00:00',
-        },
-      ];
-
-      if (filter === 'all') {
-        setRegistrations(mockData);
-      } else {
-        setRegistrations(mockData.filter((r) => r.status === filter));
+      const response = await adminRegistrationApi.getRegistrations(filter);
+      if (response.success) {
+        setRegistrations(response.data);
       }
-    } catch (error) {
-      console.error('Failed to fetch registrations:', error);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to fetch registrations',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -103,47 +66,72 @@ export default function AdminRegistrationControl() {
 
   const fetchStatistics = async () => {
     try {
-      setStatistics({
-        total_registrations: 156,
-        pending_verification: 45,
-        verified: 108,
-        blocked: 3,
-      });
-    } catch (error) {
+      const response = await adminRegistrationApi.getStatistics();
+      if (response.success) {
+        setStatistics(response.data);
+      }
+    } catch (error: any) {
       console.error('Failed to fetch statistics:', error);
     }
   };
 
   const handleVerifyFees = async (registrationId: number) => {
     try {
-      // TODO: Replace with actual API call
-      setMessage('Fee verification successful');
-      fetchRegistrations();
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      console.error('Failed to verify fees:', error);
+      const response = await adminRegistrationApi.verifyFees(registrationId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Fee verification successful',
+        });
+        fetchRegistrations();
+        fetchStatistics();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to verify fees',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleBlockRegistration = async (registrationId: number, reason: string) => {
     try {
-      // TODO: Replace with actual API call
-      setMessage('Registration blocked successfully');
-      fetchRegistrations();
-      fetchStatistics();
-    } catch (error) {
-      console.error('Failed to block registration:', error);
+      const response = await adminRegistrationApi.blockRegistration(registrationId, reason);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Registration blocked successfully',
+        });
+        fetchRegistrations();
+        fetchStatistics();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to block registration',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleUnblockRegistration = async (registrationId: number) => {
     try {
-      // TODO: Replace with actual API call
-      setMessage('Registration unblocked successfully');
-      fetchRegistrations();
-      fetchStatistics();
-    } catch (error) {
-      console.error('Failed to unblock registration:', error);
+      const response = await adminRegistrationApi.unblockRegistration(registrationId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Registration unblocked successfully',
+        });
+        fetchRegistrations();
+        fetchStatistics();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to unblock registration',
+        variant: 'destructive',
+      });
     }
   };
 

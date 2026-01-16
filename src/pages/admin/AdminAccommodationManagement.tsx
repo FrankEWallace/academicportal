@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, XCircle, Building2, Users, Bed, AlertTriangle } from 'lucide-react';
+import { adminAccommodationApi } from '@/lib/api/adminApi';
+import { useToast } from '@/hooks/use-toast';
 
 interface Hostel {
   id: number;
@@ -58,6 +60,7 @@ export default function AdminAccommodationManagement() {
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchHostels();
@@ -68,37 +71,17 @@ export default function AdminAccommodationManagement() {
   const fetchHostels = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/accommodations/hostels');
-      const data = await response.json();
+      const response = await adminAccommodationApi.getHostels();
       
-      if (data.success) {
-        setHostels(data.data);
+      if (response.success) {
+        setHostels(response.data);
       }
-    } catch (error) {
-      console.error('Failed to fetch hostels:', error);
-      // Mock data for development
-      setHostels([
-        {
-          id: 1,
-          name: 'Unity Hall',
-          code: 'UH',
-          gender: 'male',
-          total_rooms: 120,
-          capacity: 480,
-          current_occupancy: 320,
-          available_spaces: 160,
-        },
-        {
-          id: 2,
-          name: 'Excellence Hall',
-          code: 'EH',
-          gender: 'female',
-          total_rooms: 100,
-          capacity: 400,
-          current_occupancy: 285,
-          available_spaces: 115,
-        },
-      ]);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to fetch hostels',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -106,100 +89,80 @@ export default function AdminAccommodationManagement() {
 
   const fetchRequests = async () => {
     try {
-      // TODO: Replace with actual API call
-      setRequests([
-        {
-          id: 1,
-          student_id: 101,
-          student_name: 'John Doe',
-          matric_number: 'CS/2023/001',
-          gender: 'male',
-          level: 200,
-          status: 'pending',
-          requested_at: '2026-01-10 14:30:00',
-        },
-        {
-          id: 2,
-          student_id: 102,
-          student_name: 'Jane Smith',
-          matric_number: 'CS/2023/002',
-          gender: 'female',
-          level: 200,
-          status: 'allocated',
-          requested_at: '2026-01-09 10:15:00',
-          allocated_hostel: 'Excellence Hall',
-          allocated_room: 'EH201',
-        },
-      ]);
-    } catch (error) {
+      const response = await adminAccommodationApi.getPendingRequests();
+      if (response.success) {
+        setRequests(response.data);
+      }
+    } catch (error: any) {
       console.error('Failed to fetch requests:', error);
     }
   };
 
   const fetchStatistics = async () => {
     try {
-      setStatistics({
-        total_requests: 245,
-        pending_allocation: 78,
-        allocated: 167,
-        total_capacity: 2080,
-        current_occupancy: 1456,
-      });
-    } catch (error) {
+      const response = await adminAccommodationApi.getStatistics();
+      if (response.success) {
+        setStatistics(response.data);
+      }
+    } catch (error: any) {
       console.error('Failed to fetch statistics:', error);
     }
   };
 
   const fetchAvailableRooms = async (hostelId: number) => {
     try {
-      // TODO: Replace with actual API call
-      setAvailableRooms([
-        {
-          id: 1,
-          hostel_id: hostelId,
-          room_number: 'UH101',
-          floor: 1,
-          capacity: 4,
-          current_occupancy: 2,
-          status: 'available',
-        },
-        {
-          id: 2,
-          hostel_id: hostelId,
-          room_number: 'UH102',
-          floor: 1,
-          capacity: 4,
-          current_occupancy: 0,
-          status: 'available',
-        },
-      ]);
-    } catch (error) {
-      console.error('Failed to fetch available rooms:', error);
+      const response = await adminAccommodationApi.getAvailableRooms(hostelId);
+      if (response.success) {
+        setAvailableRooms(response.data);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to fetch available rooms',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleAllocate = async (requestId: number, hostelId: number, roomId: number) => {
     try {
-      // TODO: Replace with actual API call
-      setMessage('Room allocated successfully');
-      fetchRequests();
-      fetchHostels();
-      fetchStatistics();
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      console.error('Failed to allocate room:', error);
+      const response = await adminAccommodationApi.allocateRoom(requestId, hostelId, roomId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Room allocated successfully',
+        });
+        fetchRequests();
+        fetchHostels();
+        fetchStatistics();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to allocate room',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleVacate = async (requestId: number) => {
     try {
-      // TODO: Replace with actual API call
-      setMessage('Room vacated successfully');
-      fetchRequests();
-      fetchHostels();
-      fetchStatistics();
-    } catch (error) {
-      console.error('Failed to vacate room:', error);
+      const response = await adminAccommodationApi.vacateRoom(requestId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Room vacated successfully',
+        });
+        fetchRequests();
+        fetchHostels();
+        fetchStatistics();
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to vacate room',
+        variant: 'destructive',
+      });
     }
   };
 
