@@ -3,6 +3,7 @@ import AdminRegistrationControl from './AdminRegistrationControl';
 import AdminAccommodationManagement from './AdminAccommodationManagement';
 import AdminInsuranceVerification from './AdminInsuranceVerification';
 import AdminEnrollmentApproval from './AdminEnrollmentApproval';
+import AdminResultsModeration from './AdminResultsModeration';
 import AdminFeedbackManagement from './AdminFeedbackManagement';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -44,12 +45,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="results">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Results Moderation</h2>
-              <p className="text-muted-foreground">
-                Results moderation component - Coming soon
-              </p>
-            </div>
+            <AdminResultsModeration />
           </TabsContent>
 
           <TabsContent value="accommodations">
