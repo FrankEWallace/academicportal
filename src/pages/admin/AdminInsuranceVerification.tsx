@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -166,25 +167,20 @@ export default function AdminInsuranceVerification() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading insurance submissions...</p>
+      <DashboardLayout title="Insurance Verification">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading insurance submissions...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Insurance Verification</h1>
-          <p className="text-muted-foreground">Review and verify student insurance submissions</p>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
+    <DashboardLayout title="Insurance Verification">
+      <div className="space-y-6">{/* Statistics Cards */}
       {statistics && (
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
@@ -365,7 +361,8 @@ export default function AdminInsuranceVerification() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 

@@ -39,9 +39,13 @@ import LecturerCAManagement from "./pages/lecturer/LecturerCAManagement";
 import LecturerResultsManagement from "./pages/lecturer/LecturerResultsManagement";
 
 // Admin Components
-import AdminFullDashboard from "./pages/admin/AdminDashboard";
+import AdminOverview from "./pages/admin/AdminOverview";
 import AdminRegistrationControl from "./pages/admin/AdminRegistrationControl";
 import AdminAccommodationManagement from "./pages/admin/AdminAccommodationManagement";
+import AdminInsuranceVerification from "./pages/admin/AdminInsuranceVerification";
+import AdminEnrollmentApproval from "./pages/admin/AdminEnrollmentApproval";
+import AdminResultsModeration from "./pages/admin/AdminResultsModeration";
+import AdminFeedbackManagement from "./pages/admin/AdminFeedbackManagement";
 
 const queryClient = createQueryClientWithErrorHandling();
 
@@ -79,7 +83,7 @@ const App = () => (
               {/* Protected Admin Routes */}
               <Route path="/admin" element={
                 <ProtectedRoute requiredRole="admin">
-                  <AdminFullDashboard />
+                  <AdminOverview />
                 </ProtectedRoute>
               } />
               <Route path="/admin/registrations" element={
@@ -90,6 +94,26 @@ const App = () => (
               <Route path="/admin/accommodations" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminAccommodationManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/insurance" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminInsuranceVerification />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/enrollments" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminEnrollmentApproval />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/results" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminResultsModeration />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/feedback" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminFeedbackManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/courses" element={

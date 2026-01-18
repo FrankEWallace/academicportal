@@ -16,7 +16,12 @@ import {
   UserCog,
   Clock,
   Award,
-  TrendingUp
+  TrendingUp,
+  ClipboardList,
+  Shield,
+  UserCheck,
+  MessageSquare,
+  BedDouble
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -45,6 +50,12 @@ interface MenuItem {
 
 const adminMenuItems: MenuItem[] = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Registrations", url: "/admin/registrations", icon: ClipboardList },
+  { title: "Insurance", url: "/admin/insurance", icon: Shield },
+  { title: "Enrollments", url: "/admin/enrollments", icon: UserCheck },
+  { title: "Results Moderation", url: "/admin/results", icon: Award },
+  { title: "Accommodations", url: "/admin/accommodations", icon: BedDouble },
+  { title: "Feedback", url: "/admin/feedback", icon: MessageSquare },
   { title: "Students", url: "/admin/students", icon: Users },
   { title: "Teachers", url: "/admin/teachers", icon: GraduationCap },
   { title: "Courses", url: "/admin/courses", icon: BookOpen },

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -201,20 +202,14 @@ export default function AdminAccommodationManagement() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Accommodation Management</h1>
-          <p className="text-muted-foreground">Manage hostel allocations and room assignments</p>
-        </div>
-      </div>
-
-      {message && (
-        <Alert>
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      )}
+    <DashboardLayout title="Accommodation Management">
+      <div className="space-y-6">
+        {message && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
+        )}
 
       {/* Statistics Cards */}
       {statistics && (
@@ -453,6 +448,7 @@ export default function AdminAccommodationManagement() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

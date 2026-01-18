@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -196,22 +197,20 @@ export default function AdminEnrollmentApproval() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading enrollments...</p>
+      <DashboardLayout title="Enrollment Approval">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading enrollments...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Enrollment Approval</h1>
-          <p className="text-muted-foreground">Review and approve student course enrollments</p>
-        </div>
+    <DashboardLayout title="Enrollment Approval">
+      <div className="space-y-6">
         {selectedIds.length > 0 && (
           <div className="flex gap-2">
             <Button
@@ -236,7 +235,6 @@ export default function AdminEnrollmentApproval() {
             </Button>
           </div>
         )}
-      </div>
 
       {/* Statistics Cards */}
       {statistics && (
@@ -420,7 +418,8 @@ export default function AdminEnrollmentApproval() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 

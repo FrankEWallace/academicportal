@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -208,25 +209,21 @@ export default function AdminFeedbackManagement() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading feedback tickets...</p>
+      <DashboardLayout title="Feedback Management">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading feedback tickets...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Feedback Management</h1>
-          <p className="text-muted-foreground">Manage and respond to student feedback tickets</p>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
+    <DashboardLayout title="Feedback Management">
+      <div className="space-y-6">
+        {/* Statistics Cards */}
       {statistics && (
         <div className="grid gap-4 md:grid-cols-5">
           <Card>
@@ -571,6 +568,7 @@ export default function AdminFeedbackManagement() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
