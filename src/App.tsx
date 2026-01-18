@@ -46,6 +46,7 @@ import AdminInsuranceVerification from "./pages/admin/AdminInsuranceVerification
 import AdminEnrollmentApproval from "./pages/admin/AdminEnrollmentApproval";
 import AdminResultsModeration from "./pages/admin/AdminResultsModeration";
 import AdminFeedbackManagement from "./pages/admin/AdminFeedbackManagement";
+import DepartmentManagement from "./pages/admin/DepartmentManagement";
 
 const queryClient = createQueryClientWithErrorHandling();
 
@@ -143,11 +144,7 @@ const App = () => (
               } />
               <Route path="/admin/departments" element={
                 <ProtectedRoute requiredRole="admin">
-                  <ComingSoonPage 
-                    title="Departments Management" 
-                    description="Manage departments and organizational structure"
-                    icon={Building2}
-                  />
+                  <DepartmentManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/attendance" element={

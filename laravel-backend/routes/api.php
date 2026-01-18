@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\AdminEnrollmentController;
 use App\Http\Controllers\Api\AdminResultsController;
 use App\Http\Controllers\Api\AdminAccommodationController;
 use App\Http\Controllers\Api\AdminFeedbackController;
+use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\HostelRoomController;
 
@@ -662,6 +663,19 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{id}/assign', [AdminFeedbackController::class, 'assign']);
             Route::post('/{id}/change-priority', [AdminFeedbackController::class, 'changePriority']);
             Route::put('/{id}/update-status', [AdminFeedbackController::class, 'updateStatus']);
+        });
+
+        // Department Management (10 endpoints)
+        Route::prefix('departments')->group(function () {
+            Route::get('/', [DepartmentController::class, 'index']);
+            Route::get('/statistics', [DepartmentController::class, 'statistics']);
+            Route::get('/available-teachers', [DepartmentController::class, 'getAvailableTeachers']);
+            Route::get('/{id}', [DepartmentController::class, 'show']);
+            Route::post('/', [DepartmentController::class, 'store']);
+            Route::put('/{id}', [DepartmentController::class, 'update']);
+            Route::delete('/{id}', [DepartmentController::class, 'destroy']);
+            Route::post('/{id}/assign-head', [DepartmentController::class, 'assignHead']);
+            Route::post('/{id}/remove-head', [DepartmentController::class, 'removeHead']);
         });
     });
 
