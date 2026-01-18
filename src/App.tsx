@@ -60,6 +60,11 @@ const App = () => (
                   <Login />
                 </PublicRoute>
               } />
+              <Route path="/login" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
               <Route path="/password-reset-request" element={
                 <PublicRoute>
                   <PasswordResetRequest />

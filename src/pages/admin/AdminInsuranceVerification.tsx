@@ -43,14 +43,21 @@ export default function AdminInsuranceVerification() {
     try {
       const response = await adminInsuranceApi.getSubmissions(status);
       if (response.success) {
-        setSubmissions(response.data);
+        // Handle both array and paginated response formats
+        const data = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.data || []);
+        setSubmissions(data);
       }
     } catch (error: any) {
+      console.error('Fetch submissions error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to fetch submissions',
         variant: 'destructive',
       });
+      // Set empty array on error to prevent map error
+      setSubmissions([]);
     }
   };
 
@@ -231,6 +238,7 @@ export default function AdminInsuranceVerification() {
         <TabsContent value="all" className="space-y-4">
           <SubmissionsTable
             submissions={submissions}
+            loading={loading}
             onVerify={handleVerify}
             onReject={(submission) => {
               setSelectedSubmission(submission);
@@ -247,6 +255,7 @@ export default function AdminInsuranceVerification() {
         <TabsContent value="pending" className="space-y-4">
           <SubmissionsTable
             submissions={submissions}
+            loading={loading}
             onVerify={handleVerify}
             onReject={(submission) => {
               setSelectedSubmission(submission);
@@ -263,6 +272,7 @@ export default function AdminInsuranceVerification() {
         <TabsContent value="verified" className="space-y-4">
           <SubmissionsTable
             submissions={submissions}
+            loading={loading}
             onVerify={handleVerify}
             onReject={(submission) => {
               setSelectedSubmission(submission);
@@ -279,6 +289,7 @@ export default function AdminInsuranceVerification() {
         <TabsContent value="rejected" className="space-y-4">
           <SubmissionsTable
             submissions={submissions}
+            loading={loading}
             onVerify={handleVerify}
             onReject={(submission) => {
               setSelectedSubmission(submission);
@@ -361,12 +372,14 @@ export default function AdminInsuranceVerification() {
 // Submissions Table Component
 function SubmissionsTable({
   submissions,
+  loading,
   onVerify,
   onReject,
   onRequestResubmission,
   getStatusBadge,
 }: {
   submissions: InsuranceSubmission[];
+  loading: boolean;
   onVerify: (id: number) => void;
   onReject: (submission: InsuranceSubmission) => void;
   onRequestResubmission: (submission: InsuranceSubmission) => void;
@@ -394,7 +407,13 @@ function SubmissionsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {submissions.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8">
+                  Loading submissions...
+                </TableCell>
+              </TableRow>
+            ) : !Array.isArray(submissions) || submissions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-muted-foreground">
                   No submissions found

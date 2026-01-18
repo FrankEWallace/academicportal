@@ -74,14 +74,20 @@ export default function AdminAccommodationManagement() {
       const response = await adminAccommodationApi.getHostels();
       
       if (response.success) {
-        setHostels(response.data);
+        // Handle both array and paginated response formats
+        const data = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.data || []);
+        setHostels(data);
       }
     } catch (error: any) {
+      console.error('Fetch hostels error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to fetch hostels',
         variant: 'destructive',
       });
+      setHostels([]);
     } finally {
       setLoading(false);
     }
@@ -91,10 +97,15 @@ export default function AdminAccommodationManagement() {
     try {
       const response = await adminAccommodationApi.getPendingRequests();
       if (response.success) {
-        setRequests(response.data);
+        // Handle both array and paginated response formats
+        const data = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.data || []);
+        setRequests(data);
       }
     } catch (error: any) {
       console.error('Failed to fetch requests:', error);
+      setRequests([]);
     }
   };
 
@@ -113,9 +124,14 @@ export default function AdminAccommodationManagement() {
     try {
       const response = await adminAccommodationApi.getAvailableRooms(hostelId);
       if (response.success) {
-        setAvailableRooms(response.data);
+        // Handle both array and paginated response formats
+        const data = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.data || []);
+        setAvailableRooms(data);
       }
     } catch (error: any) {
+      console.error('Fetch available rooms error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to fetch available rooms',

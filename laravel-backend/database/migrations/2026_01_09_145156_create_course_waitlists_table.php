@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->integer('position'); // Position in waitlist queue
             $table->integer('semester');
-            $table->year('academic_year');
+            $table->string('academic_year'); // e.g., "2025-2026"
             $table->enum('status', ['waiting', 'enrolled', 'removed', 'expired'])->default('waiting');
             $table->timestamp('added_at')->useCurrent();
             $table->timestamp('enrolled_at')->nullable();

@@ -24,7 +24,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuthState = () => {
       const token = authStorage.getToken();
-      setIsAuthenticated(!!token);
+      const hasToken = !!token;
+      console.log('Auth state check:', { hasToken, token: token ? 'exists' : 'none' });
+      setIsAuthenticated(hasToken);
     };
 
     // Initial check
@@ -33,6 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Listen for token changes
     const handleTokenChange = () => {
+      console.log('Token changed event received');
       checkAuthState();
     };
 
@@ -54,10 +57,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     if (userError && isAuthenticated) {
       // If user fetch fails while authenticated, clear authentication
+      console.log('User fetch failed, clearing authentication');
       setIsAuthenticated(false);
       authStorage.removeToken();
     }
-  }, [userResponse, userError, isAuthenticated]);
+  }, [userError, isAuthenticated]);
 
   const logout = () => {
     authStorage.removeToken();

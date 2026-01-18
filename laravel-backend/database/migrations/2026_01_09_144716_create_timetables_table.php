@@ -21,7 +21,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->integer('semester');
-            $table->year('academic_year');
+            $table->string('academic_year'); // e.g., "2025-2026"
             $table->string('section')->nullable(); // For multiple sections of same course
             $table->integer('capacity')->default(50);
             $table->integer('enrolled_count')->default(0);

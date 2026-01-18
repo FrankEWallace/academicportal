@@ -44,14 +44,21 @@ export default function AdminEnrollmentApproval() {
     try {
       const response = await adminEnrollmentApi.getEnrollments(status);
       if (response.success) {
-        setEnrollments(response.data);
+        // Handle both array and paginated response formats
+        const data = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.data || []);
+        setEnrollments(data);
       }
     } catch (error: any) {
+      console.error('Fetch enrollments error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to fetch enrollments',
         variant: 'destructive',
       });
+      // Set empty array on error to prevent map error
+      setEnrollments([]);
     }
   };
 

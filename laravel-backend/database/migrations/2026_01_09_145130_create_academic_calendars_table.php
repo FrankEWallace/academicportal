@@ -28,7 +28,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('semester')->nullable();
-            $table->year('academic_year');
+            $table->string('academic_year'); // e.g., "2025-2026" or "2026"
             $table->text('description')->nullable();
             $table->boolean('is_holiday')->default(false);
             $table->enum('status', ['scheduled', 'ongoing', 'completed', 'cancelled'])->default('scheduled');

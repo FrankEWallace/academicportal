@@ -13,7 +13,8 @@ class TimetableSeeder extends Seeder
     {
         $courses = Course::with('teacher')->take(10)->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        $rooms = ['A-101', 'A-102', 'B-201', 'B-202', 'C-301', 'Lab-1', 'Lab-2'];
+        $rooms = ['101', '102', '201', '202', '301', 'Lab-1', 'Lab-2'];
+        $buildings = ['A', 'A', 'B', 'B', 'C', 'Lab', 'Lab'];
         $times = [
             ['08:00:00', '09:30:00'],
             ['10:00:00', '11:30:00'],
@@ -36,11 +37,12 @@ class TimetableSeeder extends Seeder
                     'day_of_week' => $days[$dayIndex],
                     'start_time' => $times[$timeIndex][0],
                     'end_time' => $times[$timeIndex][1],
-                    'room' => $rooms[$roomIndex],
+                    'room_number' => $rooms[$roomIndex],
+                    'building' => $buildings[$roomIndex],
                     'capacity' => $course->max_students ?? 40,
                     'semester' => $course->semester ?? 1,
-                    'academic_year' => '2025-2026',
-                    'status' => 'scheduled',
+                    'academic_year' => date('Y'),
+                    'status' => 'active',
                     'notes' => null
                 ]);
             }

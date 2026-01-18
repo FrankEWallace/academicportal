@@ -51,14 +51,21 @@ export default function AdminRegistrationControl() {
     try {
       const response = await adminRegistrationApi.getRegistrations(filter);
       if (response.success) {
-        setRegistrations(response.data);
+        // Handle both array and paginated response formats
+        const data = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.data || []);
+        setRegistrations(data);
       }
     } catch (error: any) {
+      console.error('Fetch registrations error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to fetch registrations',
         variant: 'destructive',
       });
+      // Set empty array on error to prevent map error
+      setRegistrations([]);
     } finally {
       setLoading(false);
     }
@@ -270,7 +277,20 @@ export default function AdminRegistrationControl() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {registrations.map((registration) => (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8">
+                    Loading registrations...
+                  </TableCell>
+                </TableRow>
+              ) : !Array.isArray(registrations) || registrations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    No registrations found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                registrations.map((registration) => (
                 <TableRow key={registration.id}>
                   <TableCell className="font-medium">{registration.matric_number}</TableCell>
                   <TableCell>{registration.student_name}</TableCell>
@@ -345,7 +365,8 @@ export default function AdminRegistrationControl() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

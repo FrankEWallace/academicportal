@@ -15,13 +15,20 @@ class DegreeProgramSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get departments (assuming they exist from DepartmentSeeder)
+        $departments = \App\Models\Department::all();
+        
+        // Default to first department if none exist
+        $defaultDeptId = $departments->first()?->id ?? 1;
+        
         // Create Degree Programs
         $bscs = DegreeProgram::create([
-            'program_code' => 'BSCS',
-            'program_name' => 'Bachelor of Science in Computer Science',
-            'department' => 'Computer Science',
-            'level' => 'undergraduate',
+            'department_id' => $defaultDeptId,
+            'code' => 'BSCS',
+            'name' => 'Bachelor of Science in Computer Science',
+            'degree_type' => 'bachelor',
             'duration_years' => 4,
+            'duration_semesters' => 8,
             'total_credits_required' => 120,
             'minimum_cgpa' => 2.00,
             'description' => 'A comprehensive program covering software development, algorithms, systems programming, and computer theory.',
@@ -29,11 +36,12 @@ class DegreeProgramSeeder extends Seeder
         ]);
 
         $bsit = DegreeProgram::create([
-            'program_code' => 'BSIT',
-            'program_name' => 'Bachelor of Science in Information Technology',
-            'department' => 'Information Technology',
-            'level' => 'undergraduate',
+            'department_id' => $defaultDeptId,
+            'code' => 'BSIT',
+            'name' => 'Bachelor of Science in Information Technology',
+            'degree_type' => 'bachelor',
             'duration_years' => 4,
+            'duration_semesters' => 8,
             'total_credits_required' => 120,
             'minimum_cgpa' => 2.00,
             'description' => 'Focuses on practical IT skills including networking, database administration, and web development.',
@@ -41,11 +49,12 @@ class DegreeProgramSeeder extends Seeder
         ]);
 
         $bsmath = DegreeProgram::create([
-            'program_code' => 'BSMATH',
-            'program_name' => 'Bachelor of Science in Mathematics',
-            'department' => 'Mathematics',
-            'level' => 'undergraduate',
+            'department_id' => $defaultDeptId,
+            'code' => 'BSMATH',
+            'name' => 'Bachelor of Science in Mathematics',
+            'degree_type' => 'bachelor',
             'duration_years' => 4,
+            'duration_semesters' => 8,
             'total_credits_required' => 120,
             'minimum_cgpa' => 2.00,
             'description' => 'Advanced study of pure and applied mathematics including calculus, algebra, and statistics.',
@@ -53,11 +62,12 @@ class DegreeProgramSeeder extends Seeder
         ]);
 
         $mscs = DegreeProgram::create([
-            'program_code' => 'MSCS',
-            'program_name' => 'Master of Science in Computer Science',
-            'department' => 'Computer Science',
-            'level' => 'graduate',
+            'department_id' => $defaultDeptId,
+            'code' => 'MSCS',
+            'name' => 'Master of Science in Computer Science',
+            'degree_type' => 'master',
             'duration_years' => 2,
+            'duration_semesters' => 4,
             'total_credits_required' => 30,
             'minimum_cgpa' => 3.00,
             'description' => 'Advanced graduate program in computer science with research focus.',
@@ -75,7 +85,9 @@ class DegreeProgramSeeder extends Seeder
                     'course_id' => $course->id,
                     'requirement_type' => $index < 4 ? 'core' : ($index < 7 ? 'major' : 'elective'),
                     'semester_recommended' => ceil(($index + 1) / 2),
-                    'is_mandatory' => $index < 4
+                    'is_required' => $index < 4,
+                    'credits' => 3,
+                    'sort_order' => $index
                 ]);
             }
 
@@ -86,7 +98,9 @@ class DegreeProgramSeeder extends Seeder
                     'course_id' => $course->id,
                     'requirement_type' => $index < 4 ? 'core' : ($index < 7 ? 'major' : 'general_education'),
                     'semester_recommended' => ceil(($index + 1) / 2),
-                    'is_mandatory' => $index < 4
+                    'is_required' => $index < 4,
+                    'credits' => 3,
+                    'sort_order' => $index
                 ]);
             }
 
@@ -97,7 +111,9 @@ class DegreeProgramSeeder extends Seeder
                     'course_id' => $course->id,
                     'requirement_type' => $index < 3 ? 'core' : ($index < 6 ? 'major' : 'elective'),
                     'semester_recommended' => ceil(($index + 1) / 2),
-                    'is_mandatory' => $index < 3
+                    'is_required' => $index < 3,
+                    'credits' => 3,
+                    'sort_order' => $index
                 ]);
             }
 
@@ -108,7 +124,9 @@ class DegreeProgramSeeder extends Seeder
                     'course_id' => $course->id,
                     'requirement_type' => $index < 3 ? 'core' : 'major',
                     'semester_recommended' => $index < 3 ? 1 : 2,
-                    'is_mandatory' => $index < 3
+                    'is_required' => $index < 3,
+                    'credits' => 3,
+                    'sort_order' => $index
                 ]);
             }
         }

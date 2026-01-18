@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const TOKEN_KEY = 'academic_portal_token'; // Match the key used in api.ts
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -15,7 +16,7 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -32,8 +33,13 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      localStorage.removeItem(TOKEN_KEY);
+      
+      // Only redirect if not already on login page
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && currentPath !== '/') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
