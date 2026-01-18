@@ -47,6 +47,7 @@ import AdminEnrollmentApproval from "./pages/admin/AdminEnrollmentApproval";
 import AdminResultsModeration from "./pages/admin/AdminResultsModeration";
 import AdminFeedbackManagement from "./pages/admin/AdminFeedbackManagement";
 import DepartmentManagement from "./pages/admin/DepartmentManagement";
+import FeesManagement from "./pages/admin/FeesManagement";
 
 const queryClient = createQueryClientWithErrorHandling();
 
@@ -167,11 +168,7 @@ const App = () => (
               } />
               <Route path="/admin/fees" element={
                 <ProtectedRoute requiredRole="admin">
-                  <ComingSoonPage 
-                    title="Fees Management" 
-                    description="Handle fee collection and payment tracking"
-                    icon={CreditCard}
-                  />
+                  <FeesManagement />
                 </ProtectedRoute>
               } />
               <Route path="/admin/announcements" element={
