@@ -12,6 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Apply security headers to all responses
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        
+        // Apply audit logging to API requests
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\AuditLogger::class,
+        ]);
+        
         $middleware->api(prepend: [
             \App\Http\Middleware\Cors::class,
         ]);
@@ -20,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
             'auth.api' => \App\Http\Middleware\AuthenticateApi::class,
+            'throttle.login' => \App\Http\Middleware\ThrottleLogins::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
