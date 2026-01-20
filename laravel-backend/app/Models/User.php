@@ -81,6 +81,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the notification preferences for the user.
+     */
+    public function notificationPreferences()
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    /**
      * Check if user is admin
      */
     public function isAdmin()

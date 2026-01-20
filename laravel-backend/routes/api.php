@@ -680,13 +680,15 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ========================================================================
-    // NOTIFICATIONS - All Authenticated Users (4 endpoints)
+    // NOTIFICATIONS - All Authenticated Users (6 endpoints)
     // ========================================================================
     Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/unread-count', [NotificationController::class, 'getUnreadCount']);
         Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead']);
         Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+        Route::get('/preferences', [NotificationController::class, 'getPreferences']);
+        Route::put('/preferences', [NotificationController::class, 'updatePreferences']);
     });
 
     // ========================================================================
