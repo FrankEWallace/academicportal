@@ -36,6 +36,10 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\HostelRoomController;
 use App\Http\Controllers\Api\Admin\BackupController;
+use App\Http\Controllers\Api\Admin\SystemSettingsController;
+use App\Http\Controllers\Api\Admin\AcademicYearController;
+use App\Http\Controllers\Api\Admin\SemesterController;
+use App\Http\Controllers\Api\Admin\GradingScaleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -689,7 +693,53 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{filename}/restore', [BackupController::class, 'restore']);
             Route::delete('/{filename}', [BackupController::class, 'destroy']);
         });
+
+        // System Settings Management
+        Route::prefix('settings')->group(function () {
+            Route::get('/', [SystemSettingsController::class, 'index']);
+            Route::get('/{key}', [SystemSettingsController::class, 'show']);
+            Route::put('/{key}', [SystemSettingsController::class, 'update']);
+            Route::delete('/{key}', [SystemSettingsController::class, 'destroy']);
+            Route::post('/bulk-update', [SystemSettingsController::class, 'bulkUpdate']);
+            Route::post('/initialize-defaults', [SystemSettingsController::class, 'initializeDefaults']);
+            Route::post('/clear-cache', [SystemSettingsController::class, 'clearCache']);
+            Route::post('/maintenance-mode', [SystemSettingsController::class, 'toggleMaintenanceMode']);
+        });
+
+        // Academic Year Management
+        Route::prefix('academic-years')->group(function () {
+            Route::get('/', [AcademicYearController::class, 'index']);
+            Route::get('/active', [AcademicYearController::class, 'active']);
+            Route::post('/', [AcademicYearController::class, 'store']);
+            Route::get('/{academicYear}', [AcademicYearController::class, 'show']);
+            Route::put('/{academicYear}', [AcademicYearController::class, 'update']);
+            Route::post('/{academicYear}/activate', [AcademicYearController::class, 'activate']);
+            Route::delete('/{academicYear}', [AcademicYearController::class, 'destroy']);
+        });
+
+        // Semester Management
+        Route::prefix('semesters')->group(function () {
+            Route::get('/', [SemesterController::class, 'index']);
+            Route::get('/active', [SemesterController::class, 'active']);
+            Route::post('/', [SemesterController::class, 'store']);
+            Route::get('/{semester}', [SemesterController::class, 'show']);
+            Route::put('/{semester}', [SemesterController::class, 'update']);
+            Route::post('/{semester}/activate', [SemesterController::class, 'activate']);
+            Route::delete('/{semester}', [SemesterController::class, 'destroy']);
+        });
+
+        // Grading Scale Management
+        Route::prefix('grading-scales')->group(function () {
+            Route::get('/', [GradingScaleController::class, 'index']);
+            Route::post('/', [GradingScaleController::class, 'store']);
+            Route::put('/{gradingScale}', [GradingScaleController::class, 'update']);
+            Route::delete('/{gradingScale}', [GradingScaleController::class, 'destroy']);
+            Route::post('/initialize-defaults', [GradingScaleController::class, 'initializeDefaults']);
+        });
     });
+
+    // Public Settings (accessible to all authenticated users)
+    Route::get('/settings/public', [SystemSettingsController::class, 'publicSettings']);
 
     // ========================================================================
     // NOTIFICATIONS - All Authenticated Users (6 endpoints)
