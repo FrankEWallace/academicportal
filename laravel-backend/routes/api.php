@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\AdminFeedbackController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\HostelRoomController;
+use App\Http\Controllers\Api\Admin\BackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -676,6 +677,17 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{id}', [DepartmentController::class, 'destroy']);
             Route::post('/{id}/assign-head', [DepartmentController::class, 'assignHead']);
             Route::post('/{id}/remove-head', [DepartmentController::class, 'removeHead']);
+        });
+
+        // Backup Management (7 endpoints)
+        Route::prefix('backups')->group(function () {
+            Route::get('/', [BackupController::class, 'index']);
+            Route::get('/stats', [BackupController::class, 'stats']);
+            Route::post('/', [BackupController::class, 'store']);
+            Route::get('/{filename}/download', [BackupController::class, 'download']);
+            Route::get('/{filename}/verify', [BackupController::class, 'verify']);
+            Route::post('/{filename}/restore', [BackupController::class, 'restore']);
+            Route::delete('/{filename}', [BackupController::class, 'destroy']);
         });
     });
 
