@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\Admin\SystemSettingsController;
 use App\Http\Controllers\Api\Admin\AcademicYearController;
 use App\Http\Controllers\Api\Admin\SemesterController;
 use App\Http\Controllers\Api\Admin\GradingScaleController;
+use App\Http\Controllers\Api\Admin\BulkImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -735,6 +736,17 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/{gradingScale}', [GradingScaleController::class, 'update']);
             Route::delete('/{gradingScale}', [GradingScaleController::class, 'destroy']);
             Route::post('/initialize-defaults', [GradingScaleController::class, 'initializeDefaults']);
+        });
+
+        // Bulk Import Management
+        Route::prefix('bulk-import')->group(function () {
+            Route::post('/upload', [BulkImportController::class, 'upload']);
+            Route::get('/imports', [BulkImportController::class, 'index']);
+            Route::get('/imports/{id}', [BulkImportController::class, 'status']);
+            Route::delete('/imports/{id}', [BulkImportController::class, 'destroy']);
+            Route::post('/imports/{id}/retry', [BulkImportController::class, 'retry']);
+            Route::get('/templates/{type}', [BulkImportController::class, 'downloadTemplate']);
+            Route::get('/statistics', [BulkImportController::class, 'statistics']);
         });
     });
 

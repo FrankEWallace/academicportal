@@ -48,6 +48,7 @@ import AdminResultsModeration from "./pages/admin/AdminResultsModeration";
 import AdminFeedbackManagement from "./pages/admin/AdminFeedbackManagement";
 import DepartmentManagement from "./pages/admin/DepartmentManagement";
 import FeesManagement from "./pages/admin/FeesManagement";
+import BulkImport from "./pages/admin/BulkImport";
 
 const queryClient = createQueryClientWithErrorHandling();
 
@@ -169,6 +170,11 @@ const App = () => (
               <Route path="/admin/fees" element={
                 <ProtectedRoute requiredRole="admin">
                   <FeesManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/bulk-import" element={
+                <ProtectedRoute requiredRole="admin">
+                  <BulkImport />
                 </ProtectedRoute>
               } />
               <Route path="/admin/announcements" element={

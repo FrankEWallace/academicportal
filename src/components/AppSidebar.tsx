@@ -21,7 +21,8 @@ import {
   Shield,
   UserCheck,
   MessageSquare,
-  BedDouble
+  BedDouble,
+  Upload
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -65,6 +66,7 @@ const adminMenuItems: MenuItem[] = [
   { title: "Attendance", url: "/admin/attendance", icon: ClipboardCheck },
   { title: "Exams & Grades", url: "/admin/exams", icon: FileText },
   { title: "Fees", url: "/admin/fees", icon: CreditCard },
+  { title: "Bulk Import", url: "/admin/bulk-import", icon: Upload },
   { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
 ];
 
