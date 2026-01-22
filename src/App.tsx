@@ -50,6 +50,10 @@ import DepartmentManagement from "./pages/admin/DepartmentManagement";
 import FeesManagement from "./pages/admin/FeesManagement";
 import BulkImport from "./pages/admin/BulkImport";
 
+// Student Self-Service Components
+import PrintForms from "./pages/PrintForms";
+import DocumentRequests from "./pages/DocumentRequests";
+
 const queryClient = createQueryClientWithErrorHandling();
 
 const App = () => (
@@ -216,6 +220,16 @@ const App = () => (
               <Route path="/student/profile" element={
                 <ProtectedRoute requiredRole="student">
                   <StudentProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/student/print-forms" element={
+                <ProtectedRoute requiredRole="student">
+                  <PrintForms />
+                </ProtectedRoute>
+              } />
+              <Route path="/student/document-requests" element={
+                <ProtectedRoute requiredRole="student">
+                  <DocumentRequests />
                 </ProtectedRoute>
               } />
               

@@ -296,6 +296,35 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/categories', [FeedbackController::class, 'getFeedbackCategories']);
             Route::put('/{id}/mark-viewed', [FeedbackController::class, 'markAsViewed']);
         });
+        
+        // Student Documents Routes
+        Route::prefix('documents')->group(function () {
+            Route::get('/admission-letter', [\App\Http\Controllers\Api\StudentDocumentController::class, 'admissionLetter']);
+            Route::get('/id-card', [\App\Http\Controllers\Api\StudentDocumentController::class, 'idCard']);
+        });
+        
+        // Course Registration Form
+        Route::get('/enrollment/registration-form', [\App\Http\Controllers\Api\StudentDocumentController::class, 'courseRegistrationForm']);
+        
+        // Timetable Download
+        Route::get('/timetable/download', [\App\Http\Controllers\Api\StudentDocumentController::class, 'timetable']);
+        
+        // Exam Timetable
+        Route::prefix('exams')->group(function () {
+            Route::get('/timetable/download', [\App\Http\Controllers\Api\StudentDocumentController::class, 'examTimetable']);
+        });
+        
+        // Payment Receipts
+        Route::get('/payments/{id}/receipt', [\App\Http\Controllers\Api\PaymentController::class, 'generateReceipt']);
+        
+        // Document Requests Routes
+        Route::prefix('document-requests')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DocumentRequestController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\DocumentRequestController::class, 'store']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\DocumentRequestController::class, 'show']);
+            Route::delete('/{id}', [\App\Http\Controllers\Api\DocumentRequestController::class, 'destroy']);
+            Route::get('/{id}/download', [\App\Http\Controllers\Api\DocumentRequestController::class, 'download'])->name('api.student.document-requests.download');
+        });
     });
     
     // Teacher Routes - Only teachers can access

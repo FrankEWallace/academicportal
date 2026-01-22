@@ -1,0 +1,286 @@
+# Student Self-Service Portal Documentation
+
+## Overview
+The Student Self-Service Portal empowers students to manage their academic documents, print forms, and request official documents without administrative intervention.
+
+## Features Implemented
+
+### 1. Print Forms Page (`/student/print-forms`)
+
+A comprehensive document management page where students can print or download various academic documents.
+
+#### Available Documents:
+
+**Academic Documents:**
+-  **Admission Letter** - Official admission letter to the university
+-  **Academic Transcript** - Complete record of academic performance
+-  **Course Registration Form** - Current semester course list
+-  **Class Timetable** - Personalized class schedule
+
+**Financial Documents:**
+-  **Payment Receipts** - Access from payment history page
+-  **Fee Invoices** - Access from registration page
+
+**Personal Documents:**
+-  **Student ID Card** - Official student identification
+-  **Accommodation Letter** - Hostel allocation letter (if applicable)
+
+#### Features:
+- **Print Directly** - Opens document in new window with print dialog
+- **Download PDF** - Downloads document to local storage
+- **Availability Status** - Shows which documents are ready
+- **Badge Indicators** - Shows document status (Official, Current, etc.)
+
+### 2. Document Requests Page (`/student/document-requests`)
+
+A ticketing system for requesting official documents that require processing.
+
+#### Request Types:
+1. **Official Transcript** - Certified academic transcript
+2. **Certificate of Enrollment** - Proof of current enrollment
+3. **Certificate of Good Conduct** - Character reference letter
+4. **Recommendation Letter** - From academic advisor
+5. **Completion Letter** - Proof of program completion
+6. **Clearance Certificate** - No outstanding obligations
+7. **Transfer Letter** - For transferring institutions
+8. **Other Document** - Custom requests
+
+#### Request Status Workflow:
+1. **Pending**  - Request submitted, awaiting review
+2. **Processing**  - Being prepared by staff
+3. **Approved**  - Approved and being finalized
+4. **Completed**  - Ready for download/collection
+5. **Rejected**  - Request denied (with reason)
+
+#### Features:
+- **Request Tracking** - Track all requests in one place
+- **Status Updates** - Real-time status indicators
+- **Email Notifications** - Alerts when status changes (backend required)
+- **Download Ready Documents** - Direct download when completed
+- **Processing Timeline** - Standard 3-5 business days
+- **Rejection Reasons** - Clear feedback if denied
+
+### 3. Print Service (`src/services/printService.ts`)
+
+A centralized service for handling all document printing and downloading.
+
+#### Service Methods:
+
+```typescript
+// Academic Documents
+printAdmissionLetter(options?: PrintOptions)
+downloadTranscript(options?: PrintOptions)
+printCourseRegistration(semesterCode?: string, options?: PrintOptions)
+downloadTimetable(options?: PrintOptions)
+
+// Financial Documents
+generatePaymentReceipt(paymentId: number, options?: PrintOptions)
+generateInvoiceReceipt(invoiceId: number, options?: PrintOptions)
+
+// Personal Documents
+printIDCard(options?: PrintOptions)
+downloadAllocationLetter(options?: PrintOptions)
+
+// Additional
+downloadExamTimetable(options?: PrintOptions)
+downloadCourseOutline(courseId: number, options?: PrintOptions)
+printBulkDocuments(documentUrls: string[])
+```
+
+#### Print Options:
+```typescript
+interface PrintOptions {
+  filename?: string;      // Custom filename for download
+  autoPrint?: boolean;    // Auto-trigger print dialog (default: false)
+}
+```
+
+## Navigation
+
+### Student Sidebar
+New menu items added to the student navigation:
+-  **Print Forms** - Quick access to printable documents
+-  **Document Requests** - Submit and track document requests
+
+## API Endpoints Required
+
+The frontend is ready, but these backend endpoints need to be implemented:
+
+### Document Generation (PDF)
+```
+GET /api/student/documents/admission-letter
+GET /api/student/documents/id-card
+GET /api/student/timetable/download
+GET /api/student/enrollment/registration-form
+GET /api/student/exams/timetable/download
+GET /api/courses/{id}/outline/download
+```
+
+### Document Requests
+```
+POST   /api/student/document-requests        # Submit new request
+GET    /api/student/document-requests        # List all requests
+GET    /api/student/document-requests/{id}   # Get request details
+DELETE /api/student/document-requests/{id}   # Cancel pending request
+GET    /api/student/document-requests/{id}/download  # Download completed document
+```
+
+### Already Implemented
+```
+ GET /api/student/academics/transcript/download
+ GET /api/student/registration/invoices/{id}/download
+ GET /api/student/accommodation/allocation-letter/download
+```
+
+## Backend Implementation Priorities
+
+### High Priority (Core Features)
+1. **Admission Letter Generator** - Welcome letter with student details
+2. **ID Card Generator** - Photo, student ID, QR code
+3. **Course Registration Form** - Current semester courses
+4. **Timetable PDF** - Weekly schedule export
+
+### Medium Priority (Enhanced UX)
+5. **Document Request API** - CRUD operations for requests
+6. **Request Status Updates** - Email notifications
+7. **Admin Review Interface** - Approve/reject requests
+
+### Low Priority (Nice to Have)
+8. **Exam Timetable** - Future feature
+9. **Course Outlines** - Syllabus downloads
+10. **Bulk Document Generation** - Print multiple at once
+
+## User Experience
+
+### Student Workflow
+
+#### Instant Downloads (No Processing Required):
+1. Navigate to **Print Forms**
+2. Click **Print** or **Download** on any available document
+3. Document opens/downloads immediately
+
+#### Document Requests (Requires Processing):
+1. Navigate to **Document Requests**
+2. Click **New Request**
+3. Select document type
+4. Enter purpose and additional info
+5. Submit request
+6. Track status in request list
+7. Download when completed
+
+### Help & Support
+- **Processing Time**: 3-5 business days
+- **Fees**: Some documents may require processing fees
+- **Contact**: registrar@academicnexus.edu
+- **Validity**: Official documents valid for 6 months
+
+## Technical Details
+
+### Technologies Used
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **shadcn/ui** - Component library
+- **Lucide Icons** - Icon system
+- **Fetch API** - HTTP requests
+
+### File Structure
+```
+src/
+├── pages/
+│   ├── PrintForms.tsx              # Document printing interface
+│   └── DocumentRequests.tsx        # Request management
+├── services/
+│   └── printService.ts             # PDF generation service
+└── components/
+    └── StudentSidebar.tsx          # Updated navigation
+```
+
+### Security Considerations
+-  JWT authentication required for all endpoints
+-  Students can only access their own documents
+-  Role-based access control (student role required)
+-  Backend needs to implement document watermarking
+-  Backend needs to implement download rate limiting
+
+## Testing Checklist
+
+### Frontend ( Complete)
+- [x] Page routing works
+- [x] UI renders correctly
+- [x] Print/Download buttons functional
+- [x] Forms validate input
+- [x] Error handling displays toasts
+- [x] Loading states show spinners
+- [x] Responsive design works
+
+### Backend ( Required)
+- [ ] PDF generation endpoints
+- [ ] Document request CRUD API
+- [ ] Email notifications
+- [ ] File storage/retrieval
+- [ ] Access control validation
+- [ ] Rate limiting
+- [ ] Watermark implementation
+
+## Future Enhancements
+
+1. **Digital Signatures** - Cryptographically sign PDFs
+2. **QR Code Verification** - Validate document authenticity
+3. **Document History** - Track all downloads
+4. **Batch Printing** - Select multiple documents
+5. **Email Delivery** - Send documents via email
+6. **Mobile App** - Native mobile access
+7. **Document Templates** - Customizable layouts
+8. **Multi-language Support** - Internationalization
+
+## Known Limitations
+
+1.  **Backend Dependency** - Most features require backend implementation
+2.  **Payment Receipts** - Currently redirects to payment history
+3.  **Invoice Downloads** - Currently redirects to registration page
+4.  **No Email Notifications** - Status updates only visible in app
+5.  **Mock Data** - Document requests use placeholder data
+
+## Migration Guide
+
+### For Existing Installations
+
+1. **Update Frontend**:
+   ```bash
+   cd academic-nexus-portal
+   git pull origin main
+   npm install
+   ```
+
+2. **Update Routes**:
+   Routes are automatically configured in `App.tsx`
+
+3. **Update Navigation**:
+   `StudentSidebar.tsx` is automatically updated
+
+4. **Test Access**:
+   - Login as student
+   - Navigate to **Print Forms**
+   - Navigate to **Document Requests**
+
+### For Backend Teams
+
+1. Implement PDF generation endpoints (see API section)
+2. Set up document storage (AWS S3, local storage, etc.)
+3. Configure email notification service
+4. Add admin interface for request approval
+5. Implement rate limiting and security measures
+
+## Support
+
+For questions or issues:
+- **Documentation**: This file
+- **Code**: Check inline comments in source files
+- **Issues**: Report bugs on GitHub
+- **Contact**: dev@academicnexus.edu
+
+---
+
+**Last Updated**: January 22, 2026  
+**Version**: 1.0.0  
+**Status**:  Frontend Complete,  Backend Pending

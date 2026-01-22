@@ -6,7 +6,12 @@ import {
   FileText,
   Bell,
   Settings,
-  LogOut
+  LogOut,
+  Clock,
+  TrendingUp,
+  Printer,
+  FilePlus,
+  CalendarDays
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -34,11 +39,12 @@ interface MenuItem {
 
 const studentMenuItems: MenuItem[] = [
   { title: "Dashboard", url: "/student", icon: LayoutDashboard },
-  { title: "My Courses", url: "/student/courses", icon: BookOpen },
-  { title: "Assignments", url: "/student/assignments", icon: FileText },
-  { title: "Schedule", url: "/student/schedule", icon: Calendar },
-  { title: "Grades", url: "/student/grades", icon: GraduationCap },
-  { title: "Announcements", url: "/student/announcements", icon: Bell },
+  { title: "Timetable", url: "/student/timetable", icon: Calendar },
+  { title: "Academic Calendar", url: "/student/calendar", icon: CalendarDays },
+  { title: "Degree Progress", url: "/student/progress", icon: TrendingUp },
+  { title: "Waitlist", url: "/student/waitlist", icon: Clock },
+  { title: "Print Forms", url: "/student/print-forms", icon: Printer },
+  { title: "Document Requests", url: "/student/document-requests", icon: FilePlus },
 ];
 
 export function StudentSidebar() {

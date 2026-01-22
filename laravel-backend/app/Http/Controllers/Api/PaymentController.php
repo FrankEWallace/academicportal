@@ -5,14 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Invoice;
+use App\Services\PdfGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    protected $pdfGenerator;
+
+    public function __construct(PdfGeneratorService $pdfGenerator)
+    {
+        $this->pdfGenerator = $pdfGenerator;
+    }
+
     /**
      * Display a listing of payments
      */
@@ -300,6 +309,63 @@ class PaymentController extends Controller
                 'success' => false,
                 'message' => 'Error retrieving payment statistics',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate payment receipt PDF
+     */
+    public function generateReceipt(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            $student = $user->student;
+
+            if (!$student) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student profile not found'
+                ], 404);
+            }
+
+            $payment = Payment::with(['invoice.student.user', 'invoice.feeStructure'])
+                ->find($id);
+
+            if (!$payment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment not found'
+                ], 404);
+            }
+
+            // Verify the payment belongs to the authenticated student
+            if ($payment->invoice->student_id !== $student->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access to payment receipt'
+                ], 403);
+            }
+
+            $data = [
+                'payment' => $payment,
+                'invoice' => $payment->invoice,
+                'student' => $student->load('user', 'department'),
+                'generated_date' => now()->format('F d, Y'),
+                'receipt_number' => 'RCP-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
+            ];
+
+            $pdf = $this->pdfGenerator->generatePaymentReceipt($data);
+
+            return response($pdf, 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="payment-receipt-' . $payment->id . '.pdf"');
+
+        } catch (\Exception $e) {
+            Log::error('Payment receipt generation failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate payment receipt'
             ], 500);
         }
     }
